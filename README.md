@@ -1,2 +1,0 @@
-# SmartFleet
-Condition monitoring project
