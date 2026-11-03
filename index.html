@@ -3,7 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SmartFleet Live Condition Monitoring Dashboard</title>
+    <title>Fleet Health Condition Monitoring Dashboard</title>
+    <!-- Progressive Web App: desktop + mobile -->
+    <meta name="theme-color" content="#020617">
+    <meta name="application-name" content="Fleet Health">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Fleet Health">
+    <link rel="manifest" href="./manifest.webmanifest">
+    <link rel="icon" type="image/png" sizes="32x32" href="./icons/favicon-32.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="./icons/apple-touch-icon.png">
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- PapaParse for Fast CSV Parsing -->
@@ -35,6 +45,7 @@
         thead th.sticky-asset-col { position: sticky; top: 0; left: 0; z-index: 30; background-color: var(--sticky-head) !important; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        [hidden] { display: none !important; }
     </style>
 </head>
 <body class="min-h-screen font-sans p-3 md:p-6 flex flex-col justify-between">
@@ -49,8 +60,8 @@
                     </svg>
                 </div>
                 <div>
-                    <h1 class="text-xl md:text-2xl font-bold tracking-tight">SmartFleet Dynamic Monitoring Dashboard</h1>
-                    <p class="text-xs theme-text-sub mt-0.5">Mining Equipment Vector Silhouette Active</p>
+                    <h1 class="text-xl md:text-2xl font-bold tracking-tight">Dynamic Monitoring Dashboard</h1>
+                    <p class="text-xs theme-text-sub mt-0.5">Rev 5.4 AMT Maintenance History Integration Active</p>
                 </div>
             </div>
             <div class="flex flex-wrap items-center gap-2.5 w-full md:w-auto justify-between md:justify-end">
@@ -63,6 +74,7 @@
                     </select>
                 </div>
                 <span id="sync-status" class="text-xs text-emerald-400 bg-emerald-950/80 px-3 py-1.5 rounded-lg border border-emerald-800">Ready</span>
+                <button id="pwa-install-btn" type="button" class="bg-cyan-600 hover:bg-cyan-500 text-white font-semibold text-xs px-3 py-2 rounded-xl transition shadow-md disabled:opacity-60 disabled:cursor-default" aria-label="Install Fleet Health App" title="Install dashboard sebagai aplikasi">⬇ Install App</button>
                 <button onclick="fetchAllData(true)" class="bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs px-3 py-2 rounded-xl transition shadow-md">🔄 Sync</button>
             </div>
         </header>
@@ -74,7 +86,7 @@
                     <h2 class="text-xs font-bold uppercase tracking-wider text-blue-400">📊 Fleet Health (%)</h2>
                     <span id="chart-model-label" class="text-[10px] theme-text-sub font-mono">ALL</span>
                 </div>
-                <div class="relative w-full max-w-[180px] h-[150px] flex items-center justify-center">
+                <div class="relative w-full max-w-[180px] h-[150px] flex items-center justify-center cursor-pointer" title="Klik bagian chart untuk memfilter status komponen">
                     <canvas id="healthChart"></canvas>
                 </div>
                 <div class="grid grid-cols-3 gap-1.5 text-center text-[10px] font-bold w-full mt-3">
@@ -86,12 +98,15 @@
 
             <div class="lg:col-span-2 theme-card p-4 rounded-2xl border shadow-xl flex flex-col justify-between">
                 <div>
-                    <h2 class="text-xs font-bold text-amber-400 uppercase tracking-wider mb-3">⚡ Fleet Status Exceeded Summary</h2>
+                    <div class="flex justify-between items-center mb-3">
+                        <h2 class="text-xs font-bold text-amber-400 uppercase tracking-wider">⚡ Fleet Status Exceeded Summary</h2>
+                        <button id="reset-filter-btn" onclick="resetStatusFilter()" class="hidden bg-slate-800 hover:bg-slate-700 text-xs text-slate-200 px-2.5 py-1 rounded-lg border border-slate-700 transition">🔄 Reset Status Filter</button>
+                    </div>
                     <div id="sos-sum-bar" class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-2 text-center text-xs"></div>
                 </div>
                 <div class="mt-4 pt-3 border-t border-slate-800/40 flex justify-between items-center text-xs">
                     <div id="unit-counter" class="theme-text-sub font-medium">Loading records...</div>
-                    <span class="text-emerald-400 font-semibold">💡 Tap Asset ID to view detail & export Excel</span>
+                    <span class="text-emerald-400 font-semibold">💡 Klik warna Chart untuk filter Normal/Caution/Critical</span>
                 </div>
             </div>
         </div>
@@ -101,15 +116,13 @@
             <div class="text-xs font-bold uppercase tracking-wider text-blue-400 mb-3 flex items-center gap-2">
                 <span>🚜 Filter by Equipment Model Profile:</span>
             </div>
-            <div id="icon-filter-bar" class="flex items-center gap-3 overflow-x-auto pb-2 no-scrollbar">
-                <!-- Dynamically populated buttons -->
-            </div>
+            <div id="icon-filter-bar" class="flex items-center gap-3 overflow-x-auto pb-2 no-scrollbar"></div>
         </div>
 
         <!-- Main Matrix Table Container -->
         <div class="theme-card rounded-2xl border overflow-hidden shadow-2xl">
             <div class="p-4 border-b border-slate-800/80 flex justify-between items-center">
-                <h3 class="text-xs font-bold uppercase tracking-wider">Fleet Component Matrix</h3>
+                <h3 id="matrix-title" class="text-xs font-bold uppercase tracking-wider">Fleet Component Matrix (All Status)</h3>
                 <span class="text-[10px] theme-text-sub">Tap ID for Asset Details & Excel Export</span>
             </div>
             <div class="table-container">
@@ -123,7 +136,7 @@
         </div>
     </div>
 
-    <!-- MODAL POPUP FOR ASSET DETAIL & EXCEL EXPORT -->
+    <!-- MODAL 1: ASSET COMPONENT DETAIL -->
     <div id="asset-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-2 sm:p-4 overflow-y-auto">
         <div class="theme-card w-full max-w-5xl rounded-2xl border shadow-2xl p-4 sm:p-6 max-h-[95vh] overflow-y-auto relative flex flex-col">
             <div class="flex justify-between items-center pb-4 mb-4 border-b border-slate-700">
@@ -140,7 +153,12 @@
                 <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 p-2.5 mb-3 rounded-lg bg-slate-950 border border-slate-800 text-xs">
                     <div><span class="text-slate-400 block text-[9px] uppercase font-semibold">Asset ID</span><span id="modal-asset-id" class="font-extrabold text-xs text-blue-400">-</span></div>
                     <div><span class="text-slate-400 block text-[9px] uppercase font-semibold">Model / Type</span><span id="modal-model" class="font-bold text-xs">-</span></div>
-                    <div><span class="text-slate-400 block text-[9px] uppercase font-semibold">Serial Number (S/N)</span><span id="modal-serial" class="font-mono font-bold text-xs">-</span></div>
+                    <div>
+                        <span class="text-slate-400 block text-[9px] uppercase font-semibold">Serial Number (S/N)</span>
+                        <button onclick="openAmtHistoryFromModal()" class="text-blue-400 hover:text-blue-300 underline font-mono font-extrabold text-xs flex items-center gap-1 cursor-pointer" title="Klik untuk membuka Maintenance History">
+                            <span id="modal-serial">-</span> <span class="text-[9px] bg-blue-900/60 px-1 py-0.2 rounded border border-blue-700">🛠️ AMT History</span>
+                        </button>
+                    </div>
                     <div><span class="text-slate-400 block text-[9px] uppercase font-semibold">Current SMU / Life</span><span id="modal-smu" class="font-mono font-bold text-xs text-amber-400">-</span></div>
                 </div>
                 <h3 class="text-[11px] font-bold uppercase tracking-wider mb-2 text-slate-300">Component Health & Maintenance Details</h3>
@@ -149,60 +167,98 @@
         </div>
     </div>
 
+    <!-- MODAL 2: MAINTENANCE HISTORY (AMT DATA) -->
+    <div id="amt-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-2 sm:p-4 overflow-y-auto">
+        <div class="theme-card w-full max-w-6xl rounded-2xl border shadow-2xl p-4 sm:p-6 max-h-[95vh] overflow-y-auto relative flex flex-col">
+            <div class="flex justify-between items-center pb-4 mb-4 border-b border-slate-700">
+                <div class="flex items-center gap-2">
+                    <span class="text-lg">🛠️</span>
+                    <div>
+                        <h2 class="text-sm font-bold text-amber-400 uppercase tracking-wider">Asset Maintenance History (AMT)</h2>
+                        <p class="text-[10px] theme-text-sub" id="amt-modal-subtitle">Loading records...</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button onclick="closeAmtModal()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold px-3 py-2 rounded-xl transition">✕ Close</button>
+                </div>
+            </div>
+
+            <!-- AMT Quick Filter Search -->
+            <div class="mb-3 flex flex-col sm:flex-row justify-between items-center gap-2">
+                <input type="text" id="amt-search-input" onkeyup="filterAmtTable()" placeholder="🔍 Search maintenance history (WO, Job Code, Description)..." class="w-full sm:w-96 px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-700 text-xs text-slate-100 outline-none focus:border-blue-500">
+                <span id="amt-record-count" class="text-[10px] theme-text-sub font-mono">0 records found</span>
+            </div>
+
+            <div class="table-container rounded-xl border border-slate-800">
+                <table class="w-full text-left text-xs border-collapse">
+                    <thead class="text-slate-400 uppercase text-[10px] tracking-wider bg-slate-950">
+                        <tr>
+                            <th class="p-2.5 border-b border-slate-800">Date / SMU</th>
+                            <th class="p-2.5 border-b border-slate-800">Work Order (WO)</th>
+                            <th class="p-2.5 border-b border-slate-800">Job Code / Modifier</th>
+                            <th class="p-2.5 border-b border-slate-800">Compartment</th>
+                            <th class="p-2.5 border-b border-slate-800">Description / Repair Details</th>
+                        </tr>
+                    </thead>
+                    <tbody id="amt-table-body" class="divide-y divide-slate-800/80 bg-slate-900/50">
+                        <tr><td colspan="5" class="p-6 text-center theme-text-sub">Select an asset serial number to view history.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
     <!-- Footer Signature -->
     <footer class="text-center mt-8 mb-2">
-        <p class="text-[11px] font-mono theme-text-sub tracking-widest flex items-center justify-center gap-1.5"><span>63rn4d🪞2026</span></p>
-        <p class="text-[10px] font-mono text-slate-500 mt-0.5">63rn4d<span style="font-size: 13px;" title="Eye of Providence">👁️</span>2026</p>
+        <p class="text-[8px] font-mono text-slate-500 mt-0.5">neemba<span style="font-size: 13px;" title="Eye of Providence">👁️</span>2026</p>
     </footer>
 
     <script>
         const mainUrlData = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSrf2aRz_JTAfexbNCF70MOB8lhPxq91WgH2uHGK0xAKfZcCGRAFOUjXD6dy3iJwQ/pub?output=csv&t=" + new Date().getTime();
+        const amtUrlData = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTGVlvgMoCmjG03oV3wiaLMa-uLWYwfLbPEdZRIcwYwWvWGTLvj_aZg6-f-seh-OQ/pub?output=csv&t=" + new Date().getTime();
 
         let rawRowsGlobal = [];
         let globalFleetData = [];
+        let amtRowsGlobal = [];
         let allUniqueComponents = new Set();
         let allUniqueModels = new Set();
         let healthChartInstance = null;
         let activeModalAsset = null;
         let currentSelectedModel = 'ALL';
+        let currentStatusFilter = 'ALL';
+        let activeAmtRecords = [];
 
         const preferredComponentOrder = [
-            "ENGINE", "TORQUE CONVERTER", "TRANSMISSION", "DIFFERENTIAL FRONT",
+            "ENGINE", "TORQUE CONVERTER", "TRANSMISSION", "DIFFERENTIAL FRONT","FINAL DRIVE FRONT LEFT", "FINAL DRIVE FRONT RIGHT",
             "WHEEL BEARINGS FRONT LEFT", "WHEEL BEARINGS FRONT RIGHT", "DIFFERENTIAL REAR",
             "FINAL DRIVE REAR LEFT", "FINAL DRIVE REAR RIGHT", "TANDEM LEFT", "TANDEM RIGHT",
             "PUMP DRIVE", "SWING DRIVE LEFT", "SWING DRIVE RIGHT", "STEERING SYSTEM",
             "HYDRAULIC SYSTEM", "RADIATOR", "VIMS", "PRODUCT LINK"
         ];
 
-        // Custom Vector Silhouettes untuk Model Alat Berat Caterpillar (777, 773, 16GC, 395, 6020, 992, D9)
         function getModelIconSvg(modelName) {
             let m = (modelName || '').toUpperCase();
             if (m.includes('777') || m.includes('773')) {
-                // Off-Highway Dump Truck
                 return {
                     svg: `<svg class="w-10 h-7" viewBox="0 0 64 48"><path d="M6 28 L2 14 L24 8 L38 20 L38 28 Z" fill="#f59e0b"/><path d="M38 18 L48 18 L54 24 L54 36 L38 36 Z" fill="#d97706"/><path d="M46 20 L52 24 L46 24 Z" fill="#0f172a"/><rect x="2" y="28" width="52" height="8" rx="2" fill="#475569"/><circle cx="14" cy="36" r="6" fill="#1e293b" stroke="#f59e0b" stroke-width="2"/><circle cx="44" cy="36" r="6" fill="#1e293b" stroke="#f59e0b" stroke-width="2"/></svg>`,
                     subtitle: 'Haul Truck'
                 };
             } else if (m.includes('16')) {
-                // Motor Grader 16GC
                 return {
                     svg: `<svg class="w-10 h-7" viewBox="0 0 64 48"><path d="M36 16 L44 16 L48 22 L48 30 L36 30 Z" fill="#d97706"/><path d="M42 18 L46 22 L42 22 Z" fill="#0f172a"/><path d="M12 28 L40 24 L56 28" stroke="#f59e0b" stroke-width="3" fill="none"/><path d="M22 32 L34 26" stroke="#e11d48" stroke-width="3"/><circle cx="10" cy="32" r="5" fill="#1e293b" stroke="#f59e0b" stroke-width="2"/><circle cx="20" cy="32" r="5" fill="#1e293b" stroke="#f59e0b" stroke-width="2"/><circle cx="52" cy="32" r="5" fill="#1e293b" stroke="#f59e0b" stroke-width="2"/></svg>`,
                     subtitle: 'Motor Grader'
                 };
             } else if (m.includes('395') || m.includes('6020')) {
-                // Excavator 395/6020
                 return {
                     svg: `<svg class="w-10 h-7" viewBox="0 0 64 48"><rect x="8" y="30" width="28" height="8" rx="4" fill="#1e293b" stroke="#f59e0b" stroke-width="2"/><path d="M12 20 L28 20 L30 30 L10 30 Z" fill="#f59e0b"/><path d="M22 21 L28 21 L28 26 L22 26 Z" fill="#0f172a"/><path d="M26 22 L40 10 L50 20 L60 16" stroke="#d97706" stroke-width="4" fill="none" stroke-linecap="round"/><path d="M58 14 L62 20 L54 22 Z" fill="#e11d48"/></svg>`,
                     subtitle: 'Excavator'
                 };
             } else if (m.includes('992')) {
-                // Wheel Loader 992
                 return {
                     svg: `<svg class="w-10 h-7" viewBox="0 0 64 48"><path d="M14 18 L26 18 L30 26 L12 26 Z" fill="#d97706"/><path d="M20 20 L24 20 L24 24 L20 24 Z" fill="#0f172a"/><path d="M26 26 L44 24 L52 16" stroke="#f59e0b" stroke-width="3" fill="none"/><path d="M50 14 L60 16 L56 28 L48 24 Z" fill="#e11d48"/><circle cx="16" cy="32" r="7" fill="#1e293b" stroke="#f59e0b" stroke-width="2"/><circle cx="38" cy="32" r="7" fill="#1e293b" stroke="#f59e0b" stroke-width="2"/></svg>`,
                     subtitle: 'Wheel Loader'
                 };
             } else if (m.includes('D9')) {
-                // Dozer D9
                 return {
                     svg: `<svg class="w-10 h-7" viewBox="0 0 64 48"><rect x="10" y="28" width="32" height="10" rx="5" fill="#1e293b" stroke="#f59e0b" stroke-width="2"/><path d="M14 16 L28 16 L34 28 L12 28 Z" fill="#f59e0b"/><path d="M22 18 L26 18 L26 22 L22 22 Z" fill="#0f172a"/><path d="M38 20 L48 22 L48 36 L44 36 Z" fill="#e11d48"/><path d="M8 20 L4 32" stroke="#d97706" stroke-width="3"/></svg>`,
                     subtitle: 'Track Dozer'
@@ -212,6 +268,23 @@
                 svg: `<svg class="w-10 h-7 fill-amber-400" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>`,
                 subtitle: 'Equipment'
             };
+        }
+
+        function renderTrendDots(trendStr) {
+            if (!trendStr || trendStr === '-' || trendStr.trim() === '') return '-';
+            let clean = trendStr.toString().toUpperCase().trim();
+            let html = '<div class="flex items-center gap-1">';
+            for (let i = 0; i < clean.length; i++) {
+                let char = clean[i];
+                let colorClass = 'bg-slate-500';
+                if (char === 'A') colorClass = 'bg-emerald-500 shadow-sm shadow-emerald-500/50';
+                else if (char === 'B') colorClass = 'bg-amber-400 shadow-sm shadow-amber-400/50';
+                else if (char === 'C') colorClass = 'bg-rose-500 shadow-sm shadow-rose-500/50';
+
+                html += `<span class="w-2 h-2 rounded-full inline-block ${colorClass}" title="Trend: ${char}"></span>`;
+            }
+            html += '</div>';
+            return html;
         }
 
         function changeTheme(themeName) {
@@ -224,45 +297,88 @@
         document.documentElement.setAttribute('data-theme', savedTheme);
         document.getElementById('theme-selector').value = savedTheme;
 
-        async function fetchWithTimeout(url, timeoutMs = 4000) {
-            const controller = new AbortController();
-            const timer = setTimeout(() => controller.abort(), timeoutMs);
-            try {
-                const res = await fetch(url, { signal: controller.signal });
-                clearTimeout(timer);
-                if (res.ok) {
+        async function fetchWithTimeout(url, timeoutMs = 5000) {
+            const attempt = async (targetUrl, limitMs) => {
+                const controller = new AbortController();
+                const timer = setTimeout(() => controller.abort(), limitMs);
+                try {
+                    const res = await fetch(targetUrl, { signal: controller.signal, cache: 'no-store' });
+                    if (!res.ok) throw new Error(`HTTP ${res.status}`);
                     const text = await res.text();
-                    if (text && text.trim().length > 0) return Papa.parse(text, { header: true, skipEmptyLines: true }).data;
+                    if (!text || !text.trim()) throw new Error('Empty CSV response');
+                    const rows = Papa.parse(text, { header: true, skipEmptyLines: true }).data;
+                    if (!rows.length) throw new Error('No rows returned');
+                    return rows;
+                } finally {
+                    clearTimeout(timer);
                 }
-            } catch (e) { clearTimeout(timer); }
-            const fallbackUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
-            const res = await fetch(fallbackUrl);
-            const text = await res.text();
-            return Papa.parse(text, { header: true, skipEmptyLines: true }).data;
+            };
+            try {
+                return await attempt(url, timeoutMs);
+            } catch (directError) {
+                const fallbackUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
+                return await attempt(fallbackUrl, 5000);
+            }
         }
 
         async function fetchAllData(forceRefresh = true) {
             const statusEl = document.getElementById('sync-status');
-            if (forceRefresh) localStorage.removeItem('smartfleet_main_csv');
+            if (!rawRowsGlobal.length) {
+                const previous = localStorage.getItem('smartfleet_main_csv');
+                if (previous) {
+                    try {
+                        rawRowsGlobal = JSON.parse(previous);
+                        processRawRows(rawRowsGlobal);
+                    } catch (_) {}
+                }
+            }
             statusEl.innerText = 'Syncing...';
             statusEl.className = 'text-xs text-amber-400 bg-amber-950/80 px-3 py-1.5 rounded-lg border border-amber-800 animate-pulse';
 
             try {
-                const mainRes = await fetchWithTimeout(mainUrlData);
+                const mainRes = await fetchWithTimeout(mainUrlData.replace(/&t=\d+$/, '') + '&t=' + Date.now());
                 if (mainRes && mainRes.length > 0) {
                     rawRowsGlobal = mainRes;
                     processRawRows(mainRes);
                     localStorage.setItem('smartfleet_main_csv', JSON.stringify(mainRes));
-                    statusEl.innerText = '✓ Synced';
-                    statusEl.className = 'text-xs text-emerald-400 bg-emerald-950/80 px-3 py-1.5 rounded-lg border border-emerald-800';
                 }
+                
+                // Also fetch AMT Maintenance Data in background
+                fetchAmtData();
+
+                statusEl.innerText = '✓ Synced';
+                statusEl.className = 'text-xs text-emerald-400 bg-emerald-950/80 px-3 py-1.5 rounded-lg border border-emerald-800';
             } catch (err) {
                 const cachedMain = localStorage.getItem('smartfleet_main_csv');
                 if (cachedMain) {
-                    rawRowsGlobal = JSON.parse(cachedMain);
-                    processRawRows(rawRowsGlobal);
-                    statusEl.innerText = '✓ Cache';
-                    statusEl.className = 'text-xs text-emerald-400 bg-emerald-950/80 px-3 py-1.5 rounded-lg border border-emerald-800';
+                    try {
+                        rawRowsGlobal = JSON.parse(cachedMain);
+                        processRawRows(rawRowsGlobal);
+                        statusEl.innerText = '✓ Cached data';
+                        statusEl.className = 'text-xs text-amber-400 bg-amber-950/80 px-3 py-1.5 rounded-lg border border-amber-800';
+                    } catch (_) {
+                        statusEl.innerText = 'Offline';
+                        statusEl.className = 'text-xs text-rose-400 bg-rose-950/80 px-3 py-1.5 rounded-lg border border-rose-800';
+                    }
+                } else {
+                    statusEl.innerText = 'Offline · No cached data';
+                    statusEl.className = 'text-xs text-rose-400 bg-rose-950/80 px-3 py-1.5 rounded-lg border border-rose-800';
+                    document.getElementById('status-cell').textContent = 'Connect to the internet to load and cache fleet data at least once.';
+                }
+            }
+        }
+
+        async function fetchAmtData() {
+            try {
+                const amtRes = await fetchWithTimeout(amtUrlData.replace(/&t=\d+$/, '') + '&t=' + Date.now());
+                if (amtRes && amtRes.length > 0) {
+                    amtRowsGlobal = amtRes;
+                    localStorage.setItem('smartfleet_amt_csv', JSON.stringify(amtRes));
+                }
+            } catch (e) {
+                const cachedAmt = localStorage.getItem('smartfleet_amt_csv');
+                if (cachedAmt) {
+                    try { amtRowsGlobal = JSON.parse(cachedAmt); } catch (_) {}
                 }
             }
         }
@@ -335,10 +451,9 @@
 
             globalFleetData = Object.values(unitMap).sort((a, b) => a.assetId.localeCompare(b.assetId, undefined, { numeric: true, sensitivity: 'base' }));
             buildIconFilterBar();
-            filterTable(currentSelectedModel);
+            filterTable();
         }
 
-        // --- BUILD PRECISE ICON FILTER BAR ---
         function buildIconFilterBar() {
             const bar = document.getElementById('icon-filter-bar');
             let models = Array.from(allUniqueModels).sort();
@@ -379,8 +494,19 @@
         function selectModel(modelName) {
             currentSelectedModel = modelName;
             buildIconFilterBar();
-            let filtered = modelName === 'ALL' ? globalFleetData : globalFleetData.filter(d => d.model === modelName);
-            renderTable(filtered, modelName);
+            filterTable();
+        }
+
+        function filterTable() {
+            let filtered = currentSelectedModel === 'ALL' ? globalFleetData : globalFleetData.filter(d => d.model === currentSelectedModel);
+            renderTable(filtered, currentSelectedModel, currentStatusFilter);
+        }
+
+        function resetStatusFilter() {
+            currentStatusFilter = 'ALL';
+            document.getElementById('matrix-title').innerText = "Fleet Component Matrix (All Status)";
+            document.getElementById('reset-filter-btn').classList.add('hidden');
+            filterTable();
         }
 
         function getSortedComponents(activeModel = 'ALL') {
@@ -413,13 +539,38 @@
                 type: 'doughnut',
                 data: {
                     labels: ['Normal', 'Caution', 'Critical'],
-                    datasets: [{ data: [n, c, cr], backgroundColor: ['#10b981', '#f59e0b', '#ef4444'], borderWidth: 2, borderColor: 'transparent' }]
+                    datasets: [{
+                        data: [n, c, cr],
+                        backgroundColor: ['#10b981', '#f59e0b', '#ef4444'],
+                        borderWidth: 2,
+                        borderColor: 'transparent'
+                    }]
                 },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, cutout: '70%' }
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    cutout: '70%',
+                    onClick: (event, elements) => {
+                        if (elements.length > 0) {
+                            const index = elements[0].index;
+                            if (index === 0) filterByStatus('Normal');
+                            else if (index === 1) filterByStatus('Caution');
+                            else if (index === 2) filterByStatus('Critical');
+                        }
+                    }
+                }
             });
         }
 
-        function renderTable(data, selectedModel = 'ALL') {
+        function filterByStatus(statusName) {
+            currentStatusFilter = statusName;
+            document.getElementById('matrix-title').innerText = `Fleet Component Matrix (Filtered: ${statusName} Only)`;
+            document.getElementById('reset-filter-btn').classList.remove('hidden');
+            filterTable();
+        }
+
+        function renderTable(data, selectedModel = 'ALL', statusFilter = 'ALL') {
             let compList = getSortedComponents(selectedModel);
             const head = document.getElementById('matrix-head');
             let headHTML = `<tr><th class="p-3 text-blue-400 font-extrabold text-xs border-r border-slate-800 w-36 min-w-[144px] sticky-asset-col">➔ Asset ID</th>`;
@@ -432,6 +583,27 @@
             let nTot = 0, cTot = 0, crTot = 0;
 
             data.forEach(row => {
+                let fallbackLife = '-';
+                for (let k in row.components) { if (row.components[k].life !== '-') { fallbackLife = row.components[k].life; break; } }
+
+                let hasMatchingComponent = false;
+                compList.forEach(comp => {
+                    let cd = row.components[comp];
+                    if (cd && cd.isRealData) {
+                        let stLower = cd.status.toLowerCase();
+                        if (stLower.includes('critical')) { crTot++; sosSum[comp]++; }
+                        else if (stLower.includes('caution') || stLower.includes('monitor')) { cTot++; sosSum[comp]++; }
+                        else if (stLower.includes('normal')) { nTot++; }
+
+                        if (statusFilter === 'ALL') hasMatchingComponent = true;
+                        else if (statusFilter === 'Normal' && stLower.includes('normal')) hasMatchingComponent = true;
+                        else if (statusFilter === 'Caution' && (stLower.includes('caution') || stLower.includes('monitor'))) hasMatchingComponent = true;
+                        else if (statusFilter === 'Critical' && stLower.includes('critical')) hasMatchingComponent = true;
+                    }
+                });
+
+                if (statusFilter !== 'ALL' && !hasMatchingComponent) return;
+
                 let tr = document.createElement('tr');
                 tr.className = "hover:bg-slate-800/20 transition border-b border-slate-800/40";
                 let rowHTML = `
@@ -443,25 +615,28 @@
                     </td>
                 `;
 
-                let fallbackLife = '-';
-                for (let k in row.components) { if (row.components[k].life !== '-') { fallbackLife = row.components[k].life; break; } }
-
                 compList.forEach(comp => {
                     let cd = row.components[comp];
                     if (!cd || !cd.isRealData) cd = { status: 'Normal', life: fallbackLife, elements: '-', action: '-', sosDate: '-', trend: '-', workOrder: '-' };
                     else if (cd.life === '-' && fallbackLife !== '-') cd.life = fallbackLife;
 
                     let stLower = cd.status.toLowerCase();
-                    if (stLower.includes('critical')) { crTot++; sosSum[comp]++; }
-                    else if (stLower.includes('caution') || stLower.includes('monitor')) { cTot++; sosSum[comp]++; }
-                    else if (stLower.includes('normal')) { nTot++; }
-
                     let badgeClass = stLower.includes('critical') ? 'badge-critical' : (stLower.includes('caution') || stLower.includes('monitor') ? 'badge-caution' : 'badge-normal');
                     let elementDisplay = (cd.elements && cd.elements !== '-') ? `<div class="mt-1 bg-rose-950/60 border border-rose-800/80 rounded px-1.5 py-0.5 text-[9px]"><span class="font-extrabold text-rose-300 block">⚠️ ${cd.elements}</span></div>` : '';
                     let actionDisplay = (cd.action && cd.action !== '-') ? `<div class="mt-1 text-[8px] text-slate-800 font-medium leading-tight line-clamp-2" title="${cd.action.replace(/"/g, '&quot;')}">💡 ${cd.action}</div>` : '';
+                    let trendDotsDisplay = renderTrendDots(cd.trend);
+
+                    let isDimmed = false;
+                    if (statusFilter !== 'ALL') {
+                        if (statusFilter === 'Normal' && !stLower.includes('normal')) isDimmed = true;
+                        if (statusFilter === 'Caution' && !stLower.includes('caution') && !stLower.includes('monitor')) isDimmed = true;
+                        if (statusFilter === 'Critical' && !stLower.includes('critical')) isDimmed = true;
+                    }
+
+                    let opacityStyle = isDimmed ? 'opacity-25 filter grayscale' : 'opacity-100';
 
                     rowHTML += `
-                        <td class="p-2 border-r border-slate-800/60 comp-cell align-top">
+                        <td class="p-2 border-r border-slate-800/60 comp-cell align-top ${opacityStyle} transition">
                             <div class="px-2 py-2 rounded-lg text-[10px] ${badgeClass} font-semibold flex flex-col justify-between shadow-sm min-h-[115px]">
                                 <div>
                                     <div class="flex justify-between items-center"><span class="font-bold">${cd.status}</span><span class="text-[9px] font-extrabold text-amber-900 bg-amber-200/90 px-1 rounded">${cd.life}</span></div>
@@ -469,9 +644,9 @@
                                     ${actionDisplay}
                                 </div>
                                 <div class="mt-1.5 pt-1 border-t border-black/10 text-[8px] flex flex-col gap-0.5">
-                                    <div class="flex justify-between"><span class="opacity-75">📅 Date:</span> <span class="font-mono font-bold">${cd.sosDate}</span></div>
-                                    <div class="flex justify-between"><span class="opacity-75">📈 Trend:</span> <span class="font-bold">${cd.trend}</span></div>
-                                    <div class="flex justify-between"><span class="opacity-75">🛠️ WO:</span> <span class="font-mono font-bold truncate max-w-[90px]">${cd.workOrder}</span></div>
+                                    <div class="flex justify-between items-center"><span class="opacity-75">📅 Date:</span> <span class="font-mono font-bold">${cd.sosDate}</span></div>
+                                    <div class="flex justify-between items-center"><span class="opacity-75">📈 Trend:</span> ${trendDotsDisplay}</div>
+                                    <div class="flex justify-between items-center"><span class="opacity-75">🛠️ WO:</span> <span class="font-mono font-bold truncate max-w-[90px]">${cd.workOrder}</span></div>
                                 </div>
                             </div>
                         </td>
@@ -481,7 +656,7 @@
                 body.appendChild(tr);
             });
 
-            document.getElementById('unit-counter').innerText = `Showing ${data.length} Fleet Units`;
+            document.getElementById('unit-counter').innerText = `Showing filtered records`;
             let bar = document.getElementById('sos-sum-bar');
             bar.className = `grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-2 text-center text-xs`;
             let barH = '';
@@ -511,6 +686,7 @@
                 let cd = asset.components[comp] || { status: 'Normal', life: assetSmu, elements: '-', action: '-', sosDate: '-', trend: '-', workOrder: '-' };
                 let stLower = cd.status.toLowerCase();
                 let badgeClass = stLower.includes('critical') ? 'badge-critical' : (stLower.includes('caution') || stLower.includes('monitor') ? 'badge-caution' : 'badge-normal');
+                let trendDotsDisplay = renderTrendDots(cd.trend);
 
                 gridHTML += `
                     <div class="p-3 rounded-xl border border-slate-700 ${badgeClass} text-[10px] flex flex-col justify-between shadow-md">
@@ -523,10 +699,11 @@
                             ${cd.elements !== '-' ? `<div class="text-[9px] text-rose-800 font-extrabold bg-rose-200/80 px-1.5 py-0.5 rounded mb-1">⚠️ Elements: ${cd.elements}</div>` : ''}
                             ${cd.action !== '-' ? `<div class="text-[9px] text-slate-900 font-semibold mb-2 bg-white/50 p-1.5 rounded border border-black/10 leading-snug">💡 <b>Action:</b> ${cd.action}</div>` : ''}
                         </div>
-                        <div class="pt-1.5 border-t border-black/10 text-[9px] flex flex-col gap-0.5 font-mono text-slate-900">
-                            <div class="flex justify-between"><span>Date: ${cd.sosDate}</span> <span>Trend: <b>${cd.trend}</b></span></div>
-                            <div class="truncate">WO: <b>${cd.workOrder}</b></div>
+                        <div class="pt-1.5 border-t border-black/10 text-[9px] flex justify-between items-center font-mono text-slate-900">
+                            <span>Date: ${cd.sosDate}</span>
+                            <span class="flex items-center gap-1">Trend: ${trendDotsDisplay}</span>
                         </div>
+                        <div class="truncate text-[9px] font-mono mt-1 text-slate-900">WO: <b>${cd.workOrder}</b></div>
                     </div>
                 `;
             });
@@ -537,6 +714,114 @@
 
         function closeAssetModal() {
             document.getElementById('asset-modal').classList.add('hidden');
+        }
+
+        // --- AMT MAINTENANCE HISTORY FUNCTIONS ---
+        async function openAmtHistoryFromModal() {
+            if (!activeModalAsset) return;
+            const assetId = activeModalAsset.assetId;
+            const serialNo = activeModalAsset.serialNo;
+
+            document.getElementById('amt-modal-subtitle').innerText = `Equipment: ${assetId} | S/N: ${serialNo} | Model: ${activeModalAsset.model}`;
+            document.getElementById('amt-table-body').innerHTML = `<tr><td colspan="5" class="p-6 text-center text-amber-400">Loading AMT Maintenance History...</td></tr>`;
+            document.getElementById('amt-modal').classList.remove('hidden');
+
+            if (!amtRowsGlobal || amtRowsGlobal.length === 0) {
+                await fetchAmtData();
+            }
+
+            renderAmtHistoryTable(assetId, serialNo);
+        }
+
+        function renderAmtHistoryTable(assetId, serialNo) {
+            if (!amtRowsGlobal || amtRowsGlobal.length === 0) {
+                document.getElementById('amt-table-body').innerHTML = `<tr><td colspan="5" class="p-6 text-center text-rose-400">No AMT records available or failed to fetch.</td></tr>`;
+                document.getElementById('amt-record-count').innerText = "0 records";
+                return;
+            }
+
+            // Identify column names dynamically
+            const sampleRow = amtRowsGlobal[0];
+            const keys = Object.keys(sampleRow);
+            const assetKey = keys.find(k => /asset|unit|eq/i.test(k)) || keys[0];
+            const serialKey = keys.find(k => /serial|sn|s\/n/i.test(k));
+            const woKey = keys.find(k => /wo|work.*order|order/i.test(k)) || keys[1];
+            const dateKey = keys.find(k => /date|tanggal|completion|time/i.test(k));
+            const smuKey = keys.find(k => /smu|meter|hours/i.test(k));
+            const jobCodeKey = keys.find(k => /job.*code|job|code|modifier/i.test(k));
+            const compKey = keys.find(k => /comp|component|assembly/i.test(k));
+            const descKey = keys.find(k => /desc|description|detail|repair|action|comment/i.test(k));
+
+            const targetAsset = assetId.toString().trim().toUpperCase();
+            const targetSerial = serialNo ? serialNo.toString().trim().toUpperCase() : '';
+
+            activeAmtRecords = amtRowsGlobal.filter(r => {
+                let rAsset = r[assetKey] ? r[assetKey].toString().trim().toUpperCase() : '';
+                let rSerial = serialKey && r[serialKey] ? r[serialKey].toString().trim().toUpperCase() : '';
+                return (rAsset === targetAsset || (targetSerial && targetSerial !== '-' && rSerial === targetSerial));
+            });
+
+            document.getElementById('amt-record-count').innerText = `${activeAmtRecords.length} records found`;
+            displayAmtRows(activeAmtRecords, { dateKey, smuKey, woKey, jobCodeKey, compKey, descKey });
+        }
+
+        function displayAmtRows(records, keys) {
+            const body = document.getElementById('amt-table-body');
+            if (records.length === 0) {
+                body.innerHTML = `<tr><td colspan="5" class="p-6 text-center theme-text-sub">No maintenance history records found for this unit.</td></tr>`;
+                return;
+            }
+
+            let html = '';
+            records.forEach(r => {
+                let dateVal = keys.dateKey && r[keys.dateKey] ? r[keys.dateKey].toString().trim() : '-';
+                let smuVal = keys.smuKey && r[keys.smuKey] ? r[keys.smuKey].toString().trim() : '';
+                let woVal = keys.woKey && r[keys.woKey] ? r[keys.woKey].toString().trim() : '-';
+                let jobVal = keys.jobCodeKey && r[keys.jobCodeKey] ? r[keys.jobCodeKey].toString().trim() : '-';
+                let compVal = keys.compKey && r[keys.compKey] ? r[keys.compKey].toString().trim() : '-';
+                let descVal = keys.descKey && r[keys.descKey] ? r[keys.descKey].toString().trim() : '-';
+
+                html += `
+                    <tr class="hover:bg-slate-800/40 border-b border-slate-800/50 text-xs">
+                        <td class="p-2.5 font-mono">
+                            <span class="text-slate-200 block font-bold">${dateVal}</span>
+                            ${smuVal ? `<span class="text-[9px] text-amber-400 font-bold bg-amber-950/60 px-1 rounded">${smuVal} hrs</span>` : ''}
+                        </td>
+                        <td class="p-2.5 font-mono text-blue-400 font-bold">${woVal}</td>
+                        <td class="p-2.5 font-mono text-slate-300">${jobVal}</td>
+                        <td class="p-2.5 font-semibold text-emerald-400 uppercase">${compVal}</td>
+                        <td class="p-2.5 text-slate-300 leading-relaxed">${descVal}</td>
+                    </tr>
+                `;
+            });
+            body.innerHTML = html;
+        }
+
+        function filterAmtTable() {
+            const query = document.getElementById('amt-search-input').value.toLowerCase();
+            if (!activeAmtRecords || activeAmtRecords.length === 0) return;
+
+            const filtered = activeAmtRecords.filter(r => {
+                return Object.values(r).some(val => val && val.toString().toLowerCase().includes(query));
+            });
+
+            document.getElementById('amt-record-count').innerText = `${filtered.length} of ${activeAmtRecords.length} records`;
+            
+            // Re-render matching subset
+            const sampleRow = activeAmtRecords[0];
+            const keys = Object.keys(sampleRow);
+            const woKey = keys.find(k => /wo|work.*order|order/i.test(k)) || keys[1];
+            const dateKey = keys.find(k => /date|tanggal|completion|time/i.test(k));
+            const smuKey = keys.find(k => /smu|meter|hours/i.test(k));
+            const jobCodeKey = keys.find(k => /job.*code|job|code|modifier/i.test(k));
+            const compKey = keys.find(k => /comp|component|assembly/i.test(k));
+            const descKey = keys.find(k => /desc|description|detail|repair|action|comment/i.test(k));
+
+            displayAmtRows(filtered, { dateKey, smuKey, woKey, jobCodeKey, compKey, descKey });
+        }
+
+        function closeAmtModal() {
+            document.getElementById('amt-modal').classList.add('hidden');
         }
 
         function exportAssetExcel() {
