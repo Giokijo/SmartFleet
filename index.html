@@ -56,12 +56,12 @@
             <div class="flex items-center gap-3">
                 <div class="w-10 h-10 flex items-center justify-center p-2 bg-blue-600/20 rounded-xl border border-blue-500/30 text-blue-400 shadow-inner">
                     <svg class="w-full h-full fill-current" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M224 32v64h-32l-23.3-23.3-45.3 45.3L146.7 142H112V96H64v46c-21.7 13.7-36.9 36.3-41.9 62H0v64h22.1c5 25.7 20.2 48.3 41.9 62V376h48v-46h34.7l-23.3 23.3 45.3 45.3L192 374.7V416h32v64h64V32h-64zm-32 256c-35.3 0-64-28.7-64-64s28.7-64 64-64 64 28.7 64-64-28.7 64-64 64zm256-160c0-17.7-14.3-32-32-32s-32 14.3-32 32 14.3 32 32 32 32-14.3 32-32zm-64 128c0-17.7-14.3-32-32-32s-32 14.3-32 32 14.3 32 32 32 32-14.3 32-32zm64 128c0-17.7-14.3-32-32-32s-32 14.3-32 32 14.3 32 32 32 32-14.3 32-32z"/>
+                        <path d="M224 32v64h-32l-23.3-23.3-45.3 45.3L146.7 142H112V96H64v46c-21.7 13.7-36.9 36.3-41.9 62H0v64h22.1c5 25.7 20.2 48.3 41.9 62V376h48v-46h34.7l-23.3 23.3 45.3 45.3L192 374.7V416h32v64h64V32h-64zm-32 256c-35.3 0-64-28.7-64-64s28.7-64 64-64 64 28.7 64 64-28.7 64-64 64zm256-160c0-17.7-14.3-32-32-32s-32 14.3-32 32 14.3 32 32 32 32-14.3 32-32zm-64 128c0-17.7-14.3-32-32-32s-32 14.3-32 32 14.3 32 32 32 32-14.3 32-32zm64 128c0-17.7-14.3-32-32-32s-32 14.3-32 32 14.3 32 32 32 32-14.3 32-32z"/>
                     </svg>
                 </div>
                 <div>
-                    <h1 class="text-xl md:text-2xl font-bold tracking-tight">Dynamic Monitoring Dashboard</h1>
-                    <p class="text-xs theme-text-sub mt-0.5">Rev 5.4 AMT Maintenance History Integration Active</p>
+                    <h1 class="text-xl md:text-2xl font-bold tracking-tight">SmartFleet Condition Monitoring Dashboard</h1>
+                    <p class="text-xs theme-text-sub mt-0.5">Rev 5.6 AMT Maintenance History & Age Tracking Active</p>
                 </div>
             </div>
             <div class="flex flex-wrap items-center gap-2.5 w-full md:w-auto justify-between md:justify-end">
@@ -74,8 +74,8 @@
                     </select>
                 </div>
                 <span id="sync-status" class="text-xs text-emerald-400 bg-emerald-950/80 px-3 py-1.5 rounded-lg border border-emerald-800">Ready</span>
-                <button id="pwa-install-btn" type="button" class="bg-cyan-600 hover:bg-cyan-500 text-white font-semibold text-xs px-3 py-2 rounded-xl transition shadow-md disabled:opacity-60 disabled:cursor-default" aria-label="Install Fleet Health App" title="Install dashboard sebagai aplikasi">⬇ Install App</button>
-                <button onclick="fetchAllData(true)" class="bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs px-3 py-2 rounded-xl transition shadow-md">🔄 Sync</button>
+                <button id="pwa-install-btn" type="button" class="bg-cyan-600 hover:bg-cyan-500 text-white font-semibold text-xs px-3 py-2 rounded-xl transition shadow-md disabled:opacity-60 disabled:cursor-default" aria-label="Install Fleet Health App" title="Install dashboard as application">⬇ Install App</button>
+                <button onclick="fetchAllData(true)" class="bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs px-3 py-2 rounded-xl transition shadow-md">🔄 Sync Data</button>
             </div>
         </header>
 
@@ -86,7 +86,7 @@
                     <h2 class="text-xs font-bold uppercase tracking-wider text-blue-400">📊 Fleet Health (%)</h2>
                     <span id="chart-model-label" class="text-[10px] theme-text-sub font-mono">ALL</span>
                 </div>
-                <div class="relative w-full max-w-[180px] h-[150px] flex items-center justify-center cursor-pointer" title="Klik bagian chart untuk memfilter status komponen">
+                <div class="relative w-full max-w-[180px] h-[150px] flex items-center justify-center cursor-pointer" title="Click chart segments to filter component status">
                     <canvas id="healthChart"></canvas>
                 </div>
                 <div class="grid grid-cols-3 gap-1.5 text-center text-[10px] font-bold w-full mt-3">
@@ -106,7 +106,7 @@
                 </div>
                 <div class="mt-4 pt-3 border-t border-slate-800/40 flex justify-between items-center text-xs">
                     <div id="unit-counter" class="theme-text-sub font-medium">Loading records...</div>
-                    <span class="text-emerald-400 font-semibold">💡 Klik warna Chart untuk filter Normal/Caution/Critical</span>
+                    <span class="text-emerald-400 font-semibold">💡 Click chart colors to filter Normal / Caution / Critical</span>
                 </div>
             </div>
         </div>
@@ -123,7 +123,7 @@
         <div class="theme-card rounded-2xl border overflow-hidden shadow-2xl">
             <div class="p-4 border-b border-slate-800/80 flex justify-between items-center">
                 <h3 id="matrix-title" class="text-xs font-bold uppercase tracking-wider">Fleet Component Matrix (All Status)</h3>
-                <span class="text-[10px] theme-text-sub">Tap ID for Asset Details & Excel Export</span>
+                <span class="text-[10px] theme-text-sub">Tap Asset ID for Details & Excel Export</span>
             </div>
             <div class="table-container">
                 <table class="w-full text-left text-xs border-collapse">
@@ -155,7 +155,7 @@
                     <div><span class="text-slate-400 block text-[9px] uppercase font-semibold">Model / Type</span><span id="modal-model" class="font-bold text-xs">-</span></div>
                     <div>
                         <span class="text-slate-400 block text-[9px] uppercase font-semibold">Serial Number (S/N)</span>
-                        <button onclick="openAmtHistoryFromModal()" class="text-blue-400 hover:text-blue-300 underline font-mono font-extrabold text-xs flex items-center gap-1 cursor-pointer" title="Klik untuk membuka Maintenance History">
+                        <button onclick="openAmtHistoryFromModal()" class="text-blue-400 hover:text-blue-300 underline font-mono font-extrabold text-xs flex items-center gap-1 cursor-pointer" title="Click to view AMT Maintenance History">
                             <span id="modal-serial">-</span> <span class="text-[9px] bg-blue-900/60 px-1 py-0.2 rounded border border-blue-700">🛠️ AMT History</span>
                         </button>
                     </div>
@@ -183,9 +183,15 @@
                 </div>
             </div>
 
-            <!-- AMT Quick Filter Search -->
-            <div class="mb-3 flex flex-col sm:flex-row justify-between items-center gap-2">
+            <!-- AMT Quick Filter Search & Legend -->
+            <div class="mb-3 flex flex-col sm:flex-row justify-between items-center gap-3">
                 <input type="text" id="amt-search-input" onkeyup="filterAmtTable()" placeholder="🔍 Search maintenance history (WO, Job Code, Description)..." class="w-full sm:w-96 px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-700 text-xs text-slate-100 outline-none focus:border-blue-500">
+                <div class="flex items-center gap-2 text-[10px] font-semibold">
+                    <span class="text-slate-400">WO Status Legend:</span>
+                    <span class="bg-emerald-950 text-emerald-400 border border-emerald-800 px-1.5 py-0.5 rounded">C = Complete</span>
+                    <span class="bg-amber-950 text-amber-400 border border-amber-800 px-1.5 py-0.5 rounded">O = Outstanding</span>
+                    <span class="bg-slate-800 text-slate-300 border border-slate-700 px-1.5 py-0.5 rounded">YTS = Yet to Start</span>
+                </div>
                 <span id="amt-record-count" class="text-[10px] theme-text-sub font-mono">0 records found</span>
             </div>
 
@@ -193,15 +199,16 @@
                 <table class="w-full text-left text-xs border-collapse">
                     <thead class="text-slate-400 uppercase text-[10px] tracking-wider bg-slate-950">
                         <tr>
-                            <th class="p-2.5 border-b border-slate-800">Date / SMU</th>
+                            <th class="p-2.5 border-b border-slate-800">Plan Start Date / SMU</th>
                             <th class="p-2.5 border-b border-slate-800">Work Order (WO)</th>
                             <th class="p-2.5 border-b border-slate-800">Job Code / Modifier</th>
-                            <th class="p-2.5 border-b border-slate-800">Compartment</th>
+                            <th class="p-2.5 border-b border-slate-800 text-center">Work Order Status</th>
+                            <th class="p-2.5 border-b border-slate-800 text-center">Age (Days)</th>
                             <th class="p-2.5 border-b border-slate-800">Description / Repair Details</th>
                         </tr>
                     </thead>
                     <tbody id="amt-table-body" class="divide-y divide-slate-800/80 bg-slate-900/50">
-                        <tr><td colspan="5" class="p-6 text-center theme-text-sub">Select an asset serial number to view history.</td></tr>
+                        <tr><td colspan="6" class="p-6 text-center theme-text-sub">Select an asset serial number to view maintenance history.</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -343,7 +350,6 @@
                     localStorage.setItem('smartfleet_main_csv', JSON.stringify(mainRes));
                 }
                 
-                // Also fetch AMT Maintenance Data in background
                 fetchAmtData();
 
                 statusEl.innerText = '✓ Synced';
@@ -461,7 +467,7 @@
             let html = `
                 <button onclick="selectModel('ALL')" class="flex items-center gap-3 px-4 py-2.5 rounded-xl border text-xs font-bold transition shadow-md cursor-pointer ${currentSelectedModel === 'ALL' ? 'bg-blue-600 border-blue-500 text-white' : 'theme-card hover:bg-slate-800/50 theme-text-sub'}">
                     <div class="w-10 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center text-blue-400">
-                        <svg class="w-6 h-6 fill-current" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+                        <svg class="w-6 h-6 fill-current" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1 v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
                     </div>
                     <div class="text-left flex flex-col">
                         <span class="text-sm tracking-wider">All Fleet</span>
@@ -723,7 +729,7 @@
             const serialNo = activeModalAsset.serialNo;
 
             document.getElementById('amt-modal-subtitle').innerText = `Equipment: ${assetId} | S/N: ${serialNo} | Model: ${activeModalAsset.model}`;
-            document.getElementById('amt-table-body').innerHTML = `<tr><td colspan="5" class="p-6 text-center text-amber-400">Loading AMT Maintenance History...</td></tr>`;
+            document.getElementById('amt-table-body').innerHTML = `<tr><td colspan="6" class="p-6 text-center text-amber-400">Loading AMT Maintenance History...</td></tr>`;
             document.getElementById('amt-modal').classList.remove('hidden');
 
             if (!amtRowsGlobal || amtRowsGlobal.length === 0) {
@@ -733,23 +739,49 @@
             renderAmtHistoryTable(assetId, serialNo);
         }
 
+        function calculateAgeInDays(dateStr, status) {
+            // Jika sudah Complete (C), umur open-nya bisa dianggap 0 atau tidak perlu dihitung overdue-nya
+            if (!dateStr || dateStr === '-' || status === 'C') return '-';
+            
+            // Parse tanggal (mendukung format yyyy-mm-dd, dd/mm/yyyy, dll)
+            let parsedDate = new Date(dateStr);
+            if (isNaN(parsedDate.getTime())) {
+                // Coba format DD/MM/YYYY
+                let parts = dateStr.split(/[\/\-\.]/);
+                if (parts.length === 3) {
+                    if (parts[0].length === 4) {
+                        parsedDate = new Date(parts[0], parts[1] - 1, parts[2]);
+                    } else {
+                        parsedDate = new Date(parts[2], parts[1] - 1, parts[0]);
+                    }
+                }
+            }
+
+            if (isNaN(parsedDate.getTime())) return '-';
+
+            const today = new Date();
+            const diffTime = today - parsedDate;
+            const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+            
+            return diffDays >= 0 ? diffDays : 0;
+        }
+
         function renderAmtHistoryTable(assetId, serialNo) {
             if (!amtRowsGlobal || amtRowsGlobal.length === 0) {
-                document.getElementById('amt-table-body').innerHTML = `<tr><td colspan="5" class="p-6 text-center text-rose-400">No AMT records available or failed to fetch.</td></tr>`;
+                document.getElementById('amt-table-body').innerHTML = `<tr><td colspan="6" class="p-6 text-center text-rose-400">No AMT records available or failed to fetch.</td></tr>`;
                 document.getElementById('amt-record-count').innerText = "0 records";
                 return;
             }
 
-            // Identify column names dynamically
             const sampleRow = amtRowsGlobal[0];
             const keys = Object.keys(sampleRow);
             const assetKey = keys.find(k => /asset|unit|eq/i.test(k)) || keys[0];
             const serialKey = keys.find(k => /serial|sn|s\/n/i.test(k));
             const woKey = keys.find(k => /wo|work.*order|order/i.test(k)) || keys[1];
-            const dateKey = keys.find(k => /date|tanggal|completion|time/i.test(k));
+            const dateKey = keys.find(k => /date|tanggal|completion|time|plan.*start/i.test(k));
             const smuKey = keys.find(k => /smu|meter|hours/i.test(k));
             const jobCodeKey = keys.find(k => /job.*code|job|code|modifier/i.test(k));
-            const compKey = keys.find(k => /comp|component|assembly/i.test(k));
+            const statusKey = keys.find(k => /status|state|wo.*status/i.test(k));
             const descKey = keys.find(k => /desc|description|detail|repair|action|comment/i.test(k));
 
             const targetAsset = assetId.toString().trim().toUpperCase();
@@ -762,13 +794,13 @@
             });
 
             document.getElementById('amt-record-count').innerText = `${activeAmtRecords.length} records found`;
-            displayAmtRows(activeAmtRecords, { dateKey, smuKey, woKey, jobCodeKey, compKey, descKey });
+            displayAmtRows(activeAmtRecords, { dateKey, smuKey, woKey, jobCodeKey, statusKey, descKey });
         }
 
         function displayAmtRows(records, keys) {
             const body = document.getElementById('amt-table-body');
             if (records.length === 0) {
-                body.innerHTML = `<tr><td colspan="5" class="p-6 text-center theme-text-sub">No maintenance history records found for this unit.</td></tr>`;
+                body.innerHTML = `<tr><td colspan="6" class="p-6 text-center theme-text-sub">No maintenance history records found for this unit.</td></tr>`;
                 return;
             }
 
@@ -778,18 +810,40 @@
                 let smuVal = keys.smuKey && r[keys.smuKey] ? r[keys.smuKey].toString().trim() : '';
                 let woVal = keys.woKey && r[keys.woKey] ? r[keys.woKey].toString().trim() : '-';
                 let jobVal = keys.jobCodeKey && r[keys.jobCodeKey] ? r[keys.jobCodeKey].toString().trim() : '-';
-                let compVal = keys.compKey && r[keys.compKey] ? r[keys.compKey].toString().trim() : '-';
+                let rawStatus = keys.statusKey && r[keys.statusKey] ? r[keys.statusKey].toString().trim().toUpperCase() : 'YTS';
                 let descVal = keys.descKey && r[keys.descKey] ? r[keys.descKey].toString().trim() : '-';
+
+                let statusCode = 'YTS';
+                let statusBadge = '';
+                if (rawStatus.includes('C') || rawStatus.includes('COMP')) {
+                    statusCode = 'C';
+                    statusBadge = `<span class="bg-emerald-950 text-emerald-400 border border-emerald-800 px-2 py-0.5 rounded font-extrabold text-[10px]">C (Complete)</span>`;
+                } else if (rawStatus.includes('O') || rawStatus.includes('OUT')) {
+                    statusCode = 'O';
+                    statusBadge = `<span class="bg-amber-950 text-amber-400 border border-amber-800 px-2 py-0.5 rounded font-extrabold text-[10px]">O (Outstanding)</span>`;
+                } else {
+                    statusCode = 'YTS';
+                    statusBadge = `<span class="bg-slate-800 text-slate-300 border border-slate-700 px-2 py-0.5 rounded font-extrabold text-[10px]">YTS (Yet to Start)</span>`;
+                }
+
+                // Calculate Age in Days (rounded, no decimal)
+                let ageDays = calculateAgeInDays(dateVal, statusCode);
+                let ageDisplay = '-';
+                if (ageDays !== '-') {
+                    let badgeColor = ageDays > 30 ? 'bg-rose-950 text-rose-400 border-rose-800' : (ageDays > 14 ? 'bg-amber-950 text-amber-400 border-amber-800' : 'bg-slate-800 text-slate-300 border-slate-750');
+                    ageDisplay = `<span class="px-2 py-0.5 rounded border font-mono font-bold text-[10px] ${badgeColor}">${ageDays} days</span>`;
+                }
 
                 html += `
                     <tr class="hover:bg-slate-800/40 border-b border-slate-800/50 text-xs">
                         <td class="p-2.5 font-mono">
-                            <span class="text-slate-200 block font-bold">${dateVal}</span>
-                            ${smuVal ? `<span class="text-[9px] text-amber-400 font-bold bg-amber-950/60 px-1 rounded">${smuVal} hrs</span>` : ''}
+                            <span class="text-slate-200 block font-bold">📅 ${dateVal}</span>
+                            ${smuVal ? `<span class="text-[9px] text-amber-400 font-bold bg-amber-950/60 px-1 rounded">SMU: ${smuVal} hrs</span>` : ''}
                         </td>
                         <td class="p-2.5 font-mono text-blue-400 font-bold">${woVal}</td>
                         <td class="p-2.5 font-mono text-slate-300">${jobVal}</td>
-                        <td class="p-2.5 font-semibold text-emerald-400 uppercase">${compVal}</td>
+                        <td class="p-2.5 text-center">${statusBadge}</td>
+                        <td class="p-2.5 text-center">${ageDisplay}</td>
                         <td class="p-2.5 text-slate-300 leading-relaxed">${descVal}</td>
                     </tr>
                 `;
@@ -807,17 +861,16 @@
 
             document.getElementById('amt-record-count').innerText = `${filtered.length} of ${activeAmtRecords.length} records`;
             
-            // Re-render matching subset
             const sampleRow = activeAmtRecords[0];
             const keys = Object.keys(sampleRow);
             const woKey = keys.find(k => /wo|work.*order|order/i.test(k)) || keys[1];
-            const dateKey = keys.find(k => /date|tanggal|completion|time/i.test(k));
+            const dateKey = keys.find(k => /date|tanggal|completion|time|plan.*start/i.test(k));
             const smuKey = keys.find(k => /smu|meter|hours/i.test(k));
             const jobCodeKey = keys.find(k => /job.*code|job|code|modifier/i.test(k));
-            const compKey = keys.find(k => /comp|component|assembly/i.test(k));
+            const statusKey = keys.find(k => /status|state|wo.*status/i.test(k));
             const descKey = keys.find(k => /desc|description|detail|repair|action|comment/i.test(k));
 
-            displayAmtRows(filtered, { dateKey, smuKey, woKey, jobCodeKey, compKey, descKey });
+            displayAmtRows(filtered, { dateKey, smuKey, woKey, jobCodeKey, statusKey, descKey });
         }
 
         function closeAmtModal() {
