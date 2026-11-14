@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="slate">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SmartFleet · Condition Monitoring</title>
+<meta name="theme-color" content="#050a18">
+<meta name="application-name" content="Fleet Health">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Fleet Health">
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="32x32" href="./icons/favicon-32.png">
+<link rel="apple-touch-icon" sizes="180x180" href="./icons/apple-touch-icon.png">
+<script async src="https://cdn.jsdelivr.net/npm/chart.js" onload="window.S&&render()"></script>
+<style>
+:root{--ok:#10b981;--warn:#f59e0b;--bad:#f43f5e;--none:#64748b;--a1:#38bdf8;--a2:#818cf8;--r:16px;font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+[data-theme=slate]{color-scheme:dark;--bg:#050a18;--card:rgba(17,26,46,.72);--solid:#0f1a30;--line:rgba(148,163,184,.15);--tx:#f1f5ff;--sub:#8b9bb8;--hov:rgba(56,189,248,.09)}
+[data-theme=navy]{color-scheme:dark;--bg:#020b21;--card:rgba(10,30,64,.75);--solid:#0a1f42;--line:rgba(125,166,231,.2);--tx:#eef5ff;--sub:#93a9cf;--hov:rgba(86,166,255,.13)}
+[data-theme=light]{color-scheme:light;--bg:#eef2f9;--card:rgba(255,255,255,.88);--solid:#fff;--line:#d9e2f0;--tx:#13223a;--sub:#5f7189;--hov:#e8f3ff}
+*{box-sizing:border-box;margin:0}
+body{background:radial-gradient(900px 500px at 5% -10%,rgba(56,189,248,.16),transparent 60%),radial-gradient(800px 500px at 100% 0,rgba(129,140,248,.14),transparent 60%),var(--bg);background-attachment:fixed;color:var(--tx);min-height:100vh;padding:clamp(10px,2vw,26px);font-size:13px}
+button,select,input{font:inherit;color:inherit}button{cursor:pointer;background:none;border:0}
+:focus-visible{outline:2px solid var(--a1);outline-offset:2px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);box-shadow:0 12px 32px rgba(0,0,0,.14)}
+.sub{color:var(--sub)}.mono{font-variant-numeric:tabular-nums;font-family:ui-monospace,Menlo,monospace}
+.btn{border:1px solid var(--line);background:var(--solid);border-radius:11px;padding:8px 13px;font-weight:600;font-size:12px;transition:.15s;white-space:nowrap}
+.btn:hover{transform:translateY(-1px);background:var(--hov)}.btn:disabled{opacity:.5;pointer-events:none}
+.btn.pri{background:linear-gradient(120deg,#0284c7,#6366f1);color:#fff;border-color:transparent;box-shadow:0 6px 18px rgba(99,102,241,.3)}
+.btn.grn{background:linear-gradient(120deg,#059669,#10b981);color:#fff;border-color:transparent}
+.fld{background:var(--solid);border:1px solid var(--line);border-radius:11px;padding:9px 12px;min-height:38px}
+/* header */
+header{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;padding:14px 18px;margin-bottom:16px}
+.brand{display:flex;gap:12px;align-items:center}
+.logo{width:42px;height:42px;border-radius:13px;display:grid;place-items:center;font-size:22px;background:linear-gradient(135deg,var(--a1),var(--a2));box-shadow:0 6px 18px rgba(99,102,241,.35)}
+h1{font-size:clamp(16px,2.2vw,21px);letter-spacing:-.02em}
+.tools{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{font-size:10.5px;font-weight:600;padding:5px 10px;border-radius:99px;border:1px solid var(--line);color:var(--sub);display:inline-flex;gap:6px;align-items:center}
+.chip:before{content:"";width:7px;height:7px;border-radius:50%;background:var(--none)}
+.chip[data-s=live]:before{background:var(--ok);box-shadow:0 0 8px var(--ok)}.chip[data-s=cached]:before{background:var(--warn)}.chip[data-s=error]:before{background:var(--bad)}.chip[data-s=busy]:before{background:var(--a1);animation:p 1s infinite}
+@keyframes p{50%{opacity:.25}}
+/* kpi */
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:14px}
+.kpi{padding:14px 16px;position:relative;overflow:hidden}
+.kpi:after{content:"";position:absolute;inset:auto -20px -30px auto;width:90px;height:90px;border-radius:50%;background:var(--c,var(--a1));opacity:.13;filter:blur(6px)}
+.kpi small{font-size:10px;text-transform:uppercase;letter-spacing:.07em;font-weight:700;color:var(--c,var(--sub))}
+.kpi b{display:block;font-size:30px;letter-spacing:-.03em;margin:4px 0 2px;color:var(--c,var(--tx))}
+.kpi span{font-size:11px;color:var(--sub)}
+.row2{display:grid;grid-template-columns:minmax(260px,1fr) 2fr;gap:12px;margin-bottom:14px}
+.panel{padding:16px}.panel h2{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--a1);margin-bottom:10px;display:flex;justify-content:space-between;align-items:center}
+.donut{display:flex;align-items:center;gap:14px}.donut .cv{position:relative;width:140px;height:140px;flex:none}
+.donut .cv div{position:absolute;inset:0;display:grid;place-content:center;text-align:center;pointer-events:none}.donut .cv b{font-size:22px}
+.legend{display:grid;gap:6px;font-size:11px;flex:1}.legend button{display:flex;justify-content:space-between;gap:8px;padding:5px 9px;border-radius:9px;border:1px solid var(--line);font-weight:600}
+.legend button:hover{background:var(--hov)}.legend i{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:6px}
+.hot{display:grid;grid-template-columns:repeat(auto-fill,minmax(128px,1fr));gap:8px}
+.hot button{text-align:left;padding:9px 11px;border:1px solid var(--line);border-radius:11px;background:rgba(100,116,139,.07)}
+.hot button:hover{background:var(--hov)}.hot span{display:block;font-size:10px;color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.hot b{font-size:12px}
+.models{display:flex;gap:8px;overflow-x:auto;padding:2px 0 8px;margin-bottom:12px;scrollbar-width:thin}
+.model{flex:none;display:flex;gap:9px;align-items:center;padding:9px 14px;border-radius:13px;border:1px solid var(--line);background:var(--card);font-weight:700;transition:.15s}
+.model:hover{background:var(--hov)}.model.on{background:linear-gradient(120deg,#0369a1,#6366f1);color:#fff;border-color:transparent;box-shadow:0 8px 20px rgba(99,102,241,.28)}
+.model em{font-style:normal;font-size:20px}.model small{display:block;font-size:10px;font-weight:500;opacity:.75}
+.bar{display:flex;flex-wrap:wrap;gap:8px;padding:10px;margin-bottom:12px}.bar input{flex:1;min-width:200px}
+/* matrix */
+.wrap{max-height:72vh;overflow:auto;scrollbar-width:thin;overscroll-behavior:contain}
+table{border-collapse:separate;border-spacing:0;width:100%}
+th{position:sticky;top:0;z-index:5;background:var(--solid);color:var(--sub);font-size:10px;text-transform:uppercase;letter-spacing:.06em;padding:11px 8px;text-align:center;border-bottom:1px solid var(--line);white-space:nowrap}
+th.hl{color:var(--warn)}
+td{padding:6px;vertical-align:top;border-bottom:1px solid var(--line)}
+.ca{position:sticky;left:0;z-index:4;background:var(--solid);width:210px;min-width:210px;border-right:1px solid var(--line);padding:11px}
+th.ca{z-index:6;text-align:left;color:var(--a1)}
+.cc{width:178px;min-width:178px}
+tr:hover td{background:var(--hov)}tr:hover td.ca{background:var(--solid)}
+.aid{font-weight:800;color:var(--a1);font-size:13px;text-align:left}.aid:hover{text-decoration:underline}
+.faults{margin-top:7px;font-size:10px}.faults summary{cursor:pointer;color:var(--warn);font-weight:700;list-style:none}.faults summary::-webkit-details-marker{display:none}
+.fl{max-height:160px;overflow:auto;margin-top:5px;scrollbar-width:thin}
+.fi{border-left:2px solid var(--line);padding:2px 0 4px 7px;margin-bottom:4px;overflow-wrap:anywhere}.fi[data-h="2"]{border-color:var(--bad)}.fi[data-h="1"]{border-color:var(--warn)}.fi[data-h="0"]{border-color:var(--ok)}
+.fi small{display:flex;gap:6px;color:var(--sub);font-size:9px;margin-top:1px}.fi .l{color:var(--ok)}.fi .m{color:var(--warn)}.fi .h{color:var(--bad)}
+/* tile */
+.tile{--c:var(--ok);display:flex;flex-direction:column;gap:5px;min-height:112px;padding:9px 10px;border-radius:12px;border:1px solid color-mix(in srgb,var(--c) 28%,transparent);border-left:4px solid var(--c);background:linear-gradient(160deg,color-mix(in srgb,var(--c) 17%,var(--solid)),color-mix(in srgb,var(--c) 5%,var(--solid)));font-size:10.5px;line-height:1.3;transition:.15s}
+.tile:hover{transform:translateY(-2px);box-shadow:0 8px 20px color-mix(in srgb,var(--c) 22%,transparent)}
+.tile[data-s=Caution]{--c:var(--warn)}.tile[data-s=Critical]{--c:var(--bad)}.tile[data-s="No Data"]{--c:var(--none)}.tile.ph{--c:var(--none);border-style:dashed;opacity:.55;background:none}
+.tile.done{border-left-color:var(--warn);background:linear-gradient(130deg,rgba(244,63,94,.28),rgba(245,158,11,.22))}.tile.dim{opacity:.2;filter:grayscale(1)}
+.th{display:flex;justify-content:space-between;gap:4px;align-items:center}.th b{font-size:11px;color:var(--c)}
+.pill{font-size:9px;padding:2px 6px;border-radius:99px;background:rgba(127,140,160,.2);color:var(--tx);white-space:nowrap}
+.wo{align-self:flex-start;font-size:9px;font-weight:800;padding:2px 7px;border-radius:99px;background:linear-gradient(120deg,#fde68a,#fbbf24);color:#78350f}
+.act{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;opacity:.9}.els{font-weight:700;color:var(--warn)}
+.tf{margin-top:auto;display:flex;justify-content:space-between;align-items:center;gap:4px;font-size:9px;color:var(--sub);border-top:1px solid var(--line);padding-top:5px}
+.dots{display:inline-flex;gap:3px}.dots i{width:7px;height:7px;border-radius:50%}
+.oil{display:block;width:100%;text-align:left;padding:6px 8px;border-radius:9px;border:1px solid #d97706;background:linear-gradient(110deg,#fffbeb,#fde68a);color:#78350f;font-size:9.5px;font-weight:700}
+.oil[data-r=acceptable]{background:linear-gradient(110deg,#ecfdf5,#bbf7d0);border-color:#059669;color:#064e3b}.oil[data-r=above]{background:linear-gradient(110deg,#fff1f2,#fecaca);border-color:#dc2626;color:#7f1d1d}.oil:empty{display:none}.oil-slot:empty{display:none}
+/* modals */
+.modal{position:fixed;inset:0;z-index:50;background:rgba(2,6,23,.78);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:12px;overflow:auto}
+.modal[hidden]{display:none}
+.dlg{width:min(97vw,var(--w,1100px));max-height:94vh;overflow:auto;background:var(--solid);border:1px solid var(--line);border-radius:20px;padding:20px;box-shadow:0 30px 70px rgba(0,0,0,.45)}
+.dh{display:flex;flex-wrap:wrap;gap:10px;justify-content:space-between;align-items:center;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--line)}
+.dh h2{font-size:14px}.info{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;padding:12px;border-radius:13px;background:rgba(100,116,139,.09);margin-bottom:14px}
+.info small{display:block;font-size:9px;text-transform:uppercase;color:var(--sub);font-weight:700;margin-bottom:2px}
+.grid3{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px}.grid3 strong{display:block;font-size:10px;color:var(--sub);text-transform:uppercase;margin-bottom:5px}
+.sum{display:flex;gap:10px;overflow-x:auto;margin-bottom:12px;padding-bottom:6px}.sum .kpi{flex:0 0 250px;--c:var(--warn)}.sum .kpi b{font-size:24px}
+.box{border-radius:12px;border:1px solid;padding:9px 11px;margin-bottom:12px;font-size:11px}
+.ok{border-color:var(--ok);background:rgba(16,185,129,.1);color:var(--ok)}.no{border-color:var(--bad);background:rgba(244,63,94,.1);color:var(--bad)}.wn{border-color:var(--warn);background:rgba(245,158,11,.1);color:var(--warn)}
+.ts{overflow:auto;max-height:52vh;border:1px solid var(--line);border-radius:12px}.ts table{min-width:900px}.ts td{padding:9px 10px}.ts td:first-child,.ts th:first-child{position:sticky;left:0;background:var(--solid)}
+.badge{padding:3px 8px;border-radius:7px;border:1px solid;font-weight:700;font-size:10px}
+#toast{position:fixed;right:16px;bottom:18px;z-index:90;max-width:min(420px,92vw);padding:12px 16px;border-radius:12px;background:#18304e;color:#fff;border:1px solid #3b82f6;box-shadow:0 18px 46px rgba(0,0,0,.45)}#toast[hidden]{display:none}
+@media(max-width:860px){.kpis{grid-template-columns:repeat(2,1fr)}.row2{grid-template-columns:1fr}.ca{width:150px;min-width:150px}.cc{width:160px;min-width:160px}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<header class="card">
+  <div class="brand"><div class="logo">🚜</div><div><h1>SmartFleet Condition Monitoring</h1><div class="sub" style="font-size:11px">Rev 8.0 · SOS · AMT · Faults · Lube</div></div></div>
+  <div class="tools">
+    <div class="chips"><span class="chip" id="chip-sos">SOS</span><span class="chip" id="chip-amt">AMT</span><span class="chip" id="chip-lube">Lube</span><span class="chip" id="chip-fault">Faults</span></div>
+    <select id="theme" class="fld" style="min-height:34px;padding:5px 10px" aria-label="Theme"><option value="slate">🌙 Slate</option><option value="navy">🌊 Navy</option><option value="light">☀️ Light</option></select>
+    <button id="pwa" class="btn" hidden>⬇ Install</button>
+    <button id="sync" class="btn pri">🔄 Sync</button>
+  </div>
+</header>
+<div id="meta" class="sub" style="font-size:11px;margin:-6px 4px 12px">Awaiting first sync…</div>
+
+<section class="kpis">
+  <div class="card kpi"><small>Equipment</small><b id="k-units">—</b><span id="k-units-n">monitored units</span></div>
+  <div class="card kpi" style="--c:var(--bad)"><small>Critical</small><b id="k-cr">—</b><span id="k-cr-n"></span></div>
+  <div class="card kpi" style="--c:var(--warn)"><small>Caution</small><b id="k-ca">—</b><span id="k-ca-n"></span></div>
+  <div class="card kpi" style="--c:var(--none)"><small>No result</small><b id="k-nd">—</b><span>not counted as Normal</span></div>
+</section>
+
+<section class="row2">
+  <div class="card panel"><h2>Fleet health <span id="chart-lbl" class="mono sub">ALL</span></h2>
+    <div class="donut"><div class="cv"><canvas id="chart"></canvas><div><b id="pct">–</b><span class="sub" style="font-size:10px">normal</span></div></div><div class="legend" id="legend"></div></div></div>
+  <div class="card panel"><h2>Hotspot components <button id="reset-st" class="btn" hidden style="padding:4px 9px">Reset filter</button></h2><div class="hot" id="hot"></div>
+    <div id="count" class="sub" style="margin-top:12px;font-size:11px"></div></div>
+</section>
+
+<div class="models" id="models"></div>
+
+<section class="card bar">
+  <input id="q" class="fld" placeholder="🔍 Search asset, model, S/N, component…" autocomplete="off">
+  <select id="st" class="fld"><option value="ALL">All statuses</option><option>Critical</option><option>Caution</option><option>Normal</option><option>No Data</option></select>
+  <select id="sort" class="fld"><option value="asset">Asset A–Z</option><option value="risk">Highest risk</option><option value="latest">Latest sample</option></select>
+  <button id="reset" class="btn">Reset</button>
+  <button id="exp" class="btn grn">↓ Export Excel</button>
+</section>
+
+<section class="card" style="overflow:hidden">
+  <div class="wrap"><table><thead id="head"></thead><tbody id="body"><tr><td class="sub" style="padding:30px;text-align:center">Loading…</td></tr></tbody></table></div>
+</section>
+
+<!-- Asset -->
+<div class="modal" id="m-asset" hidden><div class="dlg" style="--w:1100px">
+  <div class="dh"><h2>Asset condition report</h2><div class="tools"><button class="btn grn" onclick="exportAsset()">↓ Excel</button><button class="btn" onclick="closeM('m-asset')">✕</button></div></div>
+  <div class="info"><div><small>Asset</small><b id="a-id" style="color:var(--a1)"></b></div><div><small>Model</small><b id="a-model"></b></div><div><small>Serial</small><b id="a-sn" class="mono"></b></div><div><small>SMU</small><b id="a-smu" class="mono" style="color:var(--warn)"></b></div>
+    <div style="display:flex;gap:6px;align-items:end"><button class="btn" onclick="openAmt()">🛠 AMT</button><button class="btn" onclick="openLube()">🛢 Lube</button></div></div>
+  <div class="grid3" id="a-grid"></div>
+</div></div>
+
+<!-- AMT -->
+<div class="modal" id="m-amt" hidden><div class="dlg" style="--w:1200px">
+  <div class="dh"><div><h2>🛠 Maintenance history (AMT)</h2><div class="sub" id="amt-sub" style="font-size:11px"></div></div>
+    <div class="tools"><input id="amt-q" class="fld" placeholder="Search WO, job code, description…" oninput="renderAmt()"><span id="amt-n" class="sub mono"></span><button class="btn" onclick="pullAmt(true)">↻</button><button class="btn grn" onclick="exportAmt()">↓ Excel</button><button class="btn" onclick="closeM('m-amt')">✕</button></div></div>
+  <div class="ts"><table><thead><tr><th>Plan start</th><th>WO</th><th>Job code</th><th>Status</th><th>Age (d)</th><th style="text-align:left">Description</th></tr></thead><tbody id="amt-body"></tbody></table></div>
+</div></div>
+
+<!-- Lube -->
+<div class="modal" id="m-lube" hidden><div class="dlg" style="--w:1400px">
+  <div class="dh"><div><h2>🛢 Daily lube top-up</h2><div class="sub" id="lube-sub" style="font-size:11px"></div></div>
+    <div class="tools"><button class="btn pri" onclick="pullLube(true)">↻</button><button class="btn grn" onclick="exportLube()">↓ CSV</button><button class="btn" onclick="closeM('m-lube')">✕</button></div></div>
+  <div class="sum" id="lube-sum"></div><div id="lube-ratio"></div>
+  <div class="tools" style="margin-bottom:10px"><input id="lube-q" class="fld" style="flex:1;min-width:180px" placeholder="Search date, oil, remark…" oninput="renderLube()"><select id="lube-oil" class="fld" onchange="renderLube()"><option value="ALL">All oil types</option></select><span id="lube-n" class="sub mono"></span></div>
+  <div class="ts"><table><thead><tr><th>Date</th><th>Oil type</th><th>Qty</th><th>Remark</th><th>Hour meter</th><th>Fuel (L)</th><th>Rate (L/h)</th></tr></thead><tbody id="lube-body"></tbody></table></div>
+</div></div>
+<div id="toast" role="alert" hidden></div>
+
+<script>
+"use strict";
+const URLS={
+ sos:"https://docs.google.com/spreadsheets/d/e/2PACX-1vSrf2aRz_JTAfexbNCF70MOB8lhPxq91WgH2uHGK0xAKfZcCGRAFOUjXD6dy3iJwQ/pub?output=csv",
+ amt:"https://docs.google.com/spreadsheets/d/e/2PACX-1vTGVlvgMoCmjG03oV3wiaLMa-uLWYwfLbPEdZRIcwYwWvWGTLvj_aZg6-f-seh-OQ/pub?output=csv",
+ lube:"https://docs.google.com/spreadsheets/d/e/2PACX-1vTZ8qpfiK52N1loYHZYwpqSX9CxmDYbJekjyuNau0Y-BBAYr50me6dW-y8bniarow/pub?output=csv",
+ fault:"https://docs.google.com/spreadsheets/d/e/2PACX-1vSPvZAAtiY4TsK0ouT95Rg48tOv9DTcmPunMFuWUfO4dHas9xBZ4hxNOdnN9gesdA/pub?output=csv"};
+const OIL='SHELLRIMULAR4X15W40',TZ='Africa/Abidjan',GAL=3.785411784,DAY=864e5;
+const ORDER=["ENGINE","TORQUE CONVERTER","TRANSMISSION","DIFFERENTIAL FRONT","FINAL DRIVE FRONT LEFT","FINAL DRIVE FRONT RIGHT","WHEEL BEARINGS FRONT LEFT","WHEEL BEARINGS FRONT RIGHT","DIFFERENTIAL REAR","FINAL DRIVE REAR LEFT","FINAL DRIVE REAR RIGHT","TANDEM LEFT","TANDEM RIGHT","PUMP DRIVE","SWING DRIVE LEFT","SWING DRIVE RIGHT","STEERING SYSTEM","HYDRAULIC SYSTEM","RADIATOR","VIMS","PRODUCT LINK"];
+const STAT=['Normal','Caution','Critical','No Data'],COL={Normal:'#10b981',Caution:'#f59e0b',Critical:'#f43f5e','No Data':'#64748b'};
+const S={fleet:[],model:'ALL',st:'ALL',q:'',sort:'asset',asset:null};
+const D={sos:[],amt:[],lube:[],fault:[]},T={},ERR={};
+let chart,faults=new Map(),oilMap=new Map(),amtRows=[],lubeRows=[],gen=0,busy=false;
+
+/* ---------- helpers ---------- */
+const $=id=>document.getElementById(id),txt=v=>String(v??'').trim();
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const nk=s=>txt(s).toLowerCase().replace(/[^a-z0-9]/g,''),idk=s=>txt(s).toUpperCase().replace(/[\s._-]/g,'');
+const lsGet=k=>{try{return localStorage.getItem(k)}catch{return null}},lsSet=(k,v)=>{try{localStorage.setItem(k,v);return true}catch{return false}};
+const cacheGet=k=>{try{return JSON.parse(lsGet(k)||'null')}catch{return null}},cacheSet=(k,v)=>lsSet(k,JSON.stringify(v));
+const idle=f=>'requestIdleCallback' in window?requestIdleCallback(f,{timeout:2000}):setTimeout(f,0);
+function toast(m){const e=$('toast');e.textContent=m;e.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(()=>e.hidden=true,5000)}
+function col(keys,exact,pats=[]){const m=new Map(keys.map(k=>[nk(k),k]));for(const n of exact)if(m.has(nk(n)))return m.get(nk(n));for(const p of pats){const k=keys.find(k=>p.test(k));if(k)return k}return null}
+const chip=(n,s,t,title)=>{const e=$('chip-'+n);e.dataset.s=s;e.textContent=t;e.title=title||t};
+function normStatus(r){const x=txt(r).toUpperCase();if(!x||['N/A','NA','-','#N/A','NO DATA','WAITING RESULT','PENDING','NOT AVAILABLE','UNKNOWN'].includes(x))return'No Data';
+ if(/CRITICAL|SEVERE|ABNORMAL|URGENT|RED|^C$/.test(x))return'Critical';if(/CAUTION|MONITOR|WARNING|WATCH|YELLOW|^B$/.test(x))return'Caution';if(/NORMAL|GOOD|GREEN|SATISFACTORY|^A$/.test(x))return'Normal';return'No Data'}
+const score=s=>({Critical:3,Caution:2,'No Data':1,Normal:0})[s]??1;
+function pDate(v){const s=txt(v);if(!s||s==='-')return 0;let m=s.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})/);if(m)return Date.UTC(+m[1],+m[2]-1,+m[3]);
+ m=s.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{4})/);if(m){const a=+m[1],b=+m[2],d=b>12?b:a,mo=b>12?a:b;if(mo>=1&&mo<=12&&d>=1&&d<=31)return Date.UTC(+m[3],mo-1,d)}
+ const f=Date.parse(s);return Number.isFinite(f)?f:0}
+function num(val){let s=txt(val).replace(/\s*(hrs?|hours?)\s*$/i,'').replace(/\s+/g,'');if(!s||s==='-'||s==='#N/A'||!/^[+-]?[0-9.,]+$/.test(s))return NaN;
+ const d=s.lastIndexOf('.'),c=s.lastIndexOf(',');
+ if(d>=0&&c>=0){const dec=d>c?'.':',',grp=dec==='.'?',':'.';s=s.split(grp).join('').replace(dec,'.')}
+ else{const sep=d>=0?'.':c>=0?',':null;if(sep){const p=s.split(sep),l=p[p.length-1],g=p.length>2?p.slice(1).every(v=>v.length===3):l.length===3&&p[0].length<=3;s=g?p.join(''):s.replace(sep,'.')}}
+ return Number(s)}
+const hrs=v=>{const s=txt(v);if(!s||s==='-'||s==='#N/A')return'-';const n=num(s);return Number.isFinite(n)?Math.round(n).toLocaleString('en-US')+' h':s};
+const fq=v=>{const n=typeof v==='number'?v:num(v);return Number.isFinite(n)?n.toLocaleString('en-US',{maximumFractionDigits:2}):txt(v)||'-'};
+const wearEl=raw=>{const ok=new Set('CU FE CR PB SN SI AL MO NI AG B NA K V ZN'.split(' '));return[...new Set(txt(raw).split(/[;,]/).map(x=>x.trim().toUpperCase()).filter(x=>ok.has(x)))].join(', ')||'-'};
+const isDone=v=>/^(done|completed?|closed|finished|yes|true)$/i.test(txt(v));
+const dots=t=>{const l=txt(t).toUpperCase().replace(/[^ABC]/g,'').slice(-10);return l?`<span class="dots" title="Trend ${l}">${[...l].map(c=>`<i style="background:${c==='A'?'#10b981':c==='B'?'#f59e0b':'#ef4444'}"></i>`).join('')}</span>`:'<span>—</span>'};
+const icon=m=>{m=(m||'').toUpperCase();return /77[37]/.test(m)?'🚚':m.includes('16')?'🛣️':/395|6020/.test(m)?'🏗️':m.includes('992')?'🚜':m.includes('D9')?'🚧':'⚙️'};
+const download=(blob,name)=>{const a=Object.assign(document.createElement('a'),{href:URL.createObjectURL(blob),download:name});document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),3000)};
+
+/* ---------- csv + fetch ---------- */
+function parseCsv(s){const t=[];let r=[],f='',q=false;
+ for(let i=0;i<s.length;i++){const c=s[i];
+  if(c==='"'){if(q&&s[i+1]==='"'){f+='"';i++}else q=!q}
+  else if(c===','&&!q){r.push(f);f=''}
+  else if((c==='\n'||c==='\r')&&!q){if(c==='\r'&&s[i+1]==='\n')i++;r.push(f);f='';if(r.some(v=>v.trim()))t.push(r);r=[]}
+  else f+=c}
+ r.push(f);if(r.some(v=>v.trim()))t.push(r);if(!t.length)return[];
+ const h=t.shift().map(x=>x.replace(/^\uFEFF/,'').trim());
+ return t.map(v=>Object.fromEntries(h.map((k,i)=>[k,v[i]??'']).filter(([k])=>k)))}
+async function fetchCsv(url,{force=false,validate,wait=9500}={}){
+ const target=force?url+'&t='+Date.now():url,ctl=[new AbortController(),new AbortController()];
+ const one=async(u,c)=>{const r=await fetch(u,{signal:c.signal,cache:force?'no-store':'no-cache'});if(!r.ok)throw Error('HTTP '+r.status);
+  const rows=parseCsv(await r.text());if(!rows.length)throw Error('Empty CSV');if(validate&&!validate(rows))throw Error('Unexpected columns');return rows};
+ const direct=one(target,ctl[0]);
+ const proxy=new Promise((res,rej)=>{const go=()=>one('https://api.allorigins.win/raw?url='+encodeURIComponent(target),ctl[1]).then(res,rej);const t=setTimeout(go,1500);direct.catch(()=>{clearTimeout(t);go()})});
+ let to;const timeout=new Promise((_,rej)=>to=setTimeout(()=>{ctl.forEach(c=>c.abort());rej(Error('Sync timeout'))},wait));
+ try{return await Promise.race([Promise.any([direct,proxy]),timeout])}finally{clearTimeout(to);ctl.forEach(c=>c.abort())}}
+const inflight={};
+function pull(name,force,validate,wait){
+ return inflight[name]||=(async()=>{
+  try{D[name]=await fetchCsv(URLS[name],{force,validate,wait});T[name]=Date.now();ERR[name]='';
+   idle(()=>{cacheSet('sf8_'+name,D[name]);lsSet('sf8_'+name+'_at',new Date().toISOString())});return true}
+  catch(e){ERR[name]=e.message;
+   if(!D[name].length){const c=cacheGet('sf8_'+name);if(Array.isArray(c)&&c.length&&validate(c)){D[name]=c;T[name]=Date.parse(lsGet('sf8_'+name+'_at')||'')||0}}
+   return false}
+  finally{delete inflight[name]}})()}
+
+/* ---------- SOS data ---------- */
+const sosCol=keys=>({
+ asset:col(keys,['Asset ID','Unit ID','Equipment ID'],[/^asset.*id$/i,/^unit/i,/equipment.*id/i]),
+ serial:col(keys,['Serial No','Serial Number','S/N'],[/serial/i,/^sn$/i]),
+ model:col(keys,['Model','Asset Model'],[/model/i,/machine.*type/i]),
+ comp:col(keys,['Component','Component Name'],[/component/i,/assembly/i,/^system$/i]),
+ status:col(keys,['Oil Summary Health','SOS Health','Health Status'],[/oil.*summary.*health/i,/health/i,/status/i]),
+ life:col(keys,['Comp Life','Component Life'],[/comp.*life/i,/smu/i,/meter/i]),
+ smu:col(keys,['Current SMU','Latest SMU','Asset SMU','Equipment SMU','Machine SMU','Unit SMU','SMU'],[/^(current|latest|asset|equipment|machine|unit)[\s_-]*smu$/i,/^smu$/i]),
+ el:col(keys,['Element Over'],[/element.*over/i,/over.*element/i]),
+ action:col(keys,['Action','Recommended Action'],[/recommendation/i,/action/i]),
+ date:col(keys,['SOS4.NewestSMU2.SOS Date','SOS Date'],[/sos.*date/i,/sample.*date/i,/newest.*date/i]),
+ trend:col(keys,['Tren','Trend'],[/trend/i,/tren/i]),
+ wo:col(keys,['Tool Tips','Work Order','WO'],[/tool.*tip/i,/work.*order/i,/^wo$/i])});
+const vSos=rows=>!!sosCol(Object.keys(rows[0]||{})).asset;
+function buildFleet(){
+ const rows=D.sos.filter(r=>r&&typeof r==='object');if(!rows.length)return S.fleet=[];
+ const c=sosCol(Object.keys(rows[0])),units=new Map(),g=(r,k,d='')=>txt(k&&r[k])||d;
+ for(const r of rows){
+  const id=g(r,c.asset);if(!id)continue;const comp=g(r,c.comp,'GENERAL').toUpperCase();
+  const u=units.get(id)||units.set(id,{id,model:'UNSPECIFIED',sn:'-',smu:'-',comps:{}}).get(id);
+  if(u.model==='UNSPECIFIED')u.model=g(r,c.model,'UNSPECIFIED');if(u.sn==='-')u.sn=g(r,c.serial,'-');
+  const s=hrs(c.smu&&r[c.smu]);if(s!=='-'&&(u.smu==='-'||num(s)>num(u.smu)))u.smu=s;
+  const date=g(r,c.date,'-'),raw=g(r,c.status),
+   d={status:normStatus(raw),raw:raw||'-',life:hrs(c.life&&r[c.life]),el:wearEl(c.el&&r[c.el]),action:g(r,c.action,'-'),date,ts:pDate(date),trend:g(r,c.trend,'-'),wo:g(r,c.wo,'-')},
+   p=u.comps[comp];if(!p||d.ts>p.ts||(!p.ts&&d.ts))u.comps[comp]=d}
+ S.fleet=[...units.values()].sort((a,b)=>a.id.localeCompare(b.id,undefined,{numeric:true,sensitivity:'base'}));
+ if(S.model!=='ALL'&&!S.fleet.some(u=>u.model===S.model))S.model='ALL'}
+const refSmu=u=>{if(u.smu!=='-')return u.smu;const c=Object.values(u.comps).filter(c=>c.life!=='-').sort((a,b)=>b.ts-a.ts||num(b.life)-num(a.life));return c[0]?.life||'-'};
+const modelData=()=>S.model==='ALL'?S.fleet:S.fleet.filter(u=>u.model===S.model);
+const sev=u=>Math.max(0,...Object.values(u.comps).map(c=>score(c.status))),latest=u=>Math.max(0,...Object.values(u.comps).map(c=>c.ts||0));
+function visible(){
+ const q=S.q.toLowerCase();
+ let a=modelData().filter(u=>(S.st==='ALL'||Object.values(u.comps).some(c=>c.status===S.st))&&(!q||[u.id,u.model,u.sn,...Object.keys(u.comps)].some(v=>v.toLowerCase().includes(q))));
+ const byId=(x,y)=>x.id.localeCompare(y.id,undefined,{numeric:true});
+ if(S.sort==='risk')a.sort((x,y)=>sev(y)-sev(x)||byId(x,y));if(S.sort==='latest')a.sort((x,y)=>latest(y)-latest(x)||byId(x,y));
+ return a}
+function compNames(model='ALL'){
+ const n=new Set();for(const u of S.fleet)if(model==='ALL'||u.model===model){Object.keys(u.comps).forEach(k=>n.add(k));if(oilMap.has(eq(u.id)))n.add('ENGINE')}
+ return[...n].sort((a,b)=>{const x=ORDER.indexOf(a),y=ORDER.indexOf(b);return x>=0&&y>=0?x-y:x>=0?-1:y>=0?1:a.localeCompare(b)})}
+
+/* ---------- fault feed ---------- */
+const faultCol=rows=>{if(!rows?.length)return null;const k=Object.keys(rows[0]),c={
+ asset:col(k,['Asset ID','AssetID','Asset No','Equipment ID','Unit ID','Machine ID','Asset Name','Equipment Name','Name'],[/^asset.*(id|no|number)$/i,/^(equipment|unit|machine).*(id|no|name)$/i,/^name$/i]),
+ fault:col(k,['Fault Code','Fault Code Description','Fault Description','Fault Name','Event Description','Description'],[/^fault.*(code|description|name)$/i,/^description$/i]),
+ date:col(k,['Fault Code Date','Fault Date','Event Date','Timestamp','Date Time','Date'],[/^fault.*(date|time)/i,/^event.*(date|time)$/i,/^timestamp$/i,/^date/i]),
+ low:col(k,['Low','Low Count'],[/^low/i]),med:col(k,['Medium','Medium Count'],[/^med/i]),high:col(k,['High','High Count'],[/^high/i])};
+ return Object.values(c).every(Boolean)?c:null};
+const vFault=rows=>!!faultCol(rows),fcount=v=>{const n=Number(txt(v).replace(/^\s*[LMH]\s*[:=]?\s*/i,'').replace(/,/g,''));return Number.isFinite(n)?Math.max(0,Math.trunc(n)):0};
+function fdate(raw){let s=txt(raw);if(!s||s==='-')return{ts:0,t:'—'};s=s.replace(/\s+(UTC|GMT)$/i,'Z');
+ if(/^\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}/.test(s)&&!/(Z|[+-]\d{2}:?\d{2})$/i.test(s))s+='Z';
+ const d=new Date(s);return Number.isFinite(d.getTime())?{ts:d.getTime(),t:d.toISOString().slice(0,16).replace('T',' ')+' UTC'}:{ts:0,t:txt(raw)}}
+function buildFaults(){
+ faults=new Map();const c=faultCol(D.fault);if(!c)return;
+ for(const r of D.fault){const id=idk(r[c.asset]),name=txt(r[c.fault]);if(!id||!name||name==='-')continue;
+  const w=fdate(r[c.date]),l=fcount(r[c.low]),m=fcount(r[c.med]),h=fcount(r[c.high]);
+  (faults.get(id)||faults.set(id,[]).get(id)).push({name,t:w.t,ts:w.ts,l,m,h})}
+ faults.forEach(a=>a.sort((x,y)=>y.ts-x.ts))}
+function faultHtml(id){
+ const a=faults.get(idk(id));if(!a)return'';const hi=a.filter(f=>f.h>0).length;
+ return`<details class="faults"><summary>⚠ ${a.length} fault${a.length>1?'s':''}${hi?` · <span style="color:var(--bad)">${hi} high</span>`:''}</summary><div class="fl">${a.map(f=>`<div class="fi" data-h="${f.h?2:f.m?1:0}"><div>${esc(f.name)}</div><small><span>${esc(f.t)}</span><b class="l">L${f.l}</b><b class="m">M${f.m}</b><b class="h">H${f.h}</b></small></div>`).join('')}</div></details>`}
+function updFaults(){document.querySelectorAll('[data-fault]').forEach(e=>e.innerHTML=faultHtml(e.dataset.fault))}
+
+/* ---------- lube / engine oil ---------- */
+const lubeCol=rows=>{if(!rows?.length)return null;const k=Object.keys(rows[0]),c={
+ equip:col(k,['Equip No','Equip No.','Equipment No','Equipment Number','Asset ID','Equip ID'],[/^equip.*no/i,/^equipment.*(no|id)/i,/^asset.*id/i,/^unit.*(no|id)/i]),
+ date:col(k,['date','Top Up Date','Top-up Date'],[/^date$/i,/top.?up.*date/i,/^tanggal$/i]),
+ oil:col(k,['Oil type','Oil Type','Lubricant Type','Oil'],[/oil.*type/i,/lubricant/i,/oil.*name/i]),
+ qty:col(k,['quantity oil','Quantity Oil','Quantity','Qty','Top Up Qty'],[/quantity.*oil/i,/oil.*quantity/i,/^qty/i,/quantity/i]),
+ remark:col(k,['remark','Remarks','Notes','Comment'],[/remark/i,/notes?/i,/comment/i]),
+ meter:col(k,['Hour Meter (Hours)','Hour Meter(Hours)','Hour Meter','SMU'],[/^hour.*meter/i,/^smu$/i]),
+ fuel:col(k,['Total Fuel Burned (L)','Total Fuel Burned (Liter)','Total Fuel Burned (Liters)','Total Fuel Burned (gal)','Total Fuel Burned (gallons)'],[/^total.*fuel.*burned/i,/^fuel.*burned/i]),
+ rate:col(k,['Total Fuel Burn Rate (L/H)','Total Fuel Burn Rate (L/Hour)','Total Fuel Burn Rate (gal/Hour)','Fuel Burn Rate'],[/^total.*fuel.*burn.*rate/i,/^fuel.*burn.*rate/i])};
+ return c.equip&&c.date&&c.oil&&c.qty?c:null};
+const vLube=rows=>!!lubeCol(rows),eq=v=>txt(v).toUpperCase().replace(/[\s\-_.]/g,''),oilKey=v=>txt(v).toUpperCase().replace(/[^A-Z0-9]/g,'');
+const lit=(r,c,k)=>{if(!c[k])return NaN;const n=num(r[c[k]]);return !Number.isFinite(n)||n<0?NaN:/\bgal(lons?)?\b/i.test(c[k])?n*GAL:n};
+function oilWindow(){const p=new Intl.DateTimeFormat('en-GB',{timeZone:TZ,year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date()),g=t=>+p.find(x=>x.type===t).value,today=Date.UTC(g('year'),g('month')-1,g('day'));return{today,first:today-6*DAY,key:new Date(today).toISOString().slice(0,10)}}
+const sameFuel=(a,b)=>Math.abs(a-b)<=Math.max(.02,Math.max(a,b)*1e-5);
+function oilAlerts(rows){ // ≥2 Rimula top-ups in 7 days, or one already above 1 L / 240 L diesel
+ const out=new Map(),c=lubeCol(rows);if(!c)return out;
+ const{today,first}=oilWindow(),fuel=new Map(),bad=new Set();
+ for(const r of rows){const id=eq(r[c.equip]);if(!id)continue;const d=pDate(r[c.date]);if(!d||d<first||d>today)continue;
+  const f=lit(r,c,'fuel');
+  if(Number.isFinite(f)){const m=fuel.get(id)||fuel.set(id,new Map()).get(id),o=m.get(d);if(o!==undefined&&!sameFuel(o,f))bad.add(id);m.set(d,o===undefined?f:Math.max(o,f))}
+  if(oilKey(r[c.oil])!==OIL)continue;const q=num(r[c.qty]);if(!(q>0))continue;
+  const e=out.get(id)||out.set(id,{count:0,liters:0}).get(id);e.count++;e.liters+=q}
+ for(const[id,e]of out){const m=fuel.get(id)||new Map();e.fuel=[...m.values()].reduce((a,b)=>a+b,0);e.days=m.size;e.bad=bad.has(id);
+  e.ratio=e.fuel>0?e.liters*240/e.fuel:NaN;e.res=e.bad||!Number.isFinite(e.ratio)?'unavailable':e.ratio>1+1e-9?'above':'acceptable';
+  if(e.count<2&&e.res!=='above')out.delete(id)}
+ return out}
+function oilHtml(id){
+ const a=oilMap.get(eq(id));if(!a)return'';
+ const lab={above:'ABOVE LIMIT',acceptable:'ACCEPTABLE',unavailable:a.bad?'REVIEW FUEL DATA':'NO FUEL DATA'}[a.res];
+ return`<button class="oil" data-r="${a.res}" data-asset="${esc(id)}" onclick="oilClick(this.dataset.asset)" title="${a.count} top-ups · ${fq(a.liters)} L oil · ${fq(a.fuel)} L diesel (${a.days}/7 days)">🛢 ${a.count}× / 7d · ${fq(a.liters)} L<br>${Number.isFinite(a.ratio)?a.ratio.toFixed(2)+' L / 240 L':'ratio n/a'} · ${lab}</button>`}
+function setOilChip(){
+ const n=[...oilMap.keys()].filter(k=>S.fleet.some(u=>eq(u.id)===k)).length,c=lubeCol(lubeRows);
+ if(!lubeRows.length)return chip('lube',ERR.lube?'error':'busy',ERR.lube?'Lube: unavailable':'Lube: checking');
+ chip('lube',T.lube&&Date.now()-T.lube<36e5&&!ERR.lube?'live':'cached',`🛢 ${n} oil alert${n===1?'':'s'}`,c&&!c.fuel?'Fuel Burned column missing':'Engine oil alerts, last 7 days')}
+function rebuildOil(){
+ lubeRows=D.lube;oilMap=oilAlerts(lubeRows);setOilChip();
+ document.querySelectorAll('.oil-slot').forEach(e=>e.innerHTML=oilHtml(e.dataset.asset));
+ if(oilMap.size&&S.fleet.length&&!document.querySelector('th[data-c="ENGINE"]'))renderTable()}
+function oilClick(id){openAsset(id);openLube().then(()=>{const f=$('lube-oil'),o=[...f.options].find(x=>oilKey(x.textContent)===OIL);if(o){f.value=o.value;renderLube()}})}
+function allowance(rows,id,c){ // all-time: Rimula top-up vs diesel ÷ 240
+ const k=eq(id),fuel=new Map(),days=new Set();let oil=0,n=0,conflict=0,nodate=0,mn=Infinity,mx=-Infinity;
+ for(const r of rows){if(eq(r[c.equip])!==k)continue;const d=pDate(r[c.date]),f=lit(r,c,'fuel');
+  if(d&&Number.isFinite(f)){const o=fuel.get(d);if(o!==undefined&&!sameFuel(o,f))conflict=1;fuel.set(d,o===undefined?f:Math.max(o,f));mn=Math.min(mn,d);mx=Math.max(mx,d)}
+  if(oilKey(r[c.oil])!==OIL)continue;const q=num(r[c.qty]);if(!(q>0))continue;oil+=q;n++;d?days.add(d):nodate++}
+ if(!n)return null;
+ const total=[...fuel.values()].reduce((a,b)=>a+b,0),max=total/240,miss=[...days].filter(d=>!fuel.has(d)).length;
+ const status=!c.fuel||!fuel.size?'unavailable':conflict?'review':nodate||miss?'incomplete':oil>max+1e-9?'above':'acceptable';
+ return{oil,total,max,diff:oil-max,status,days:fuel.size,miss,range:fuel.size?new Date(mn).toISOString().slice(0,10)+' → '+new Date(mx).toISOString().slice(0,10):'—'}}
+function allowHtml(a){
+ if(!a)return'';const L={acceptable:'ACCEPTABLE',above:'NOT ACCEPTABLE',review:'REVIEW FUEL DATA',incomplete:'FUEL DATA INCOMPLETE',unavailable:'FUEL DATA UNAVAILABLE'}[a.status],cls=a.status==='acceptable'?'ok':a.status==='above'?'no':'wn';
+ return`<div class="box ${cls}" style="margin:10px 0 0"><div class="mono" style="color:var(--tx);display:grid;grid-template-columns:1fr auto;gap:3px 8px;margin-bottom:6px"><span class="sub">Total diesel</span><b>${fq(a.total)} L</b><span class="sub">Max oil (÷240)</span><b>${fq(a.max)} L</b><span class="sub">Actual oil</span><b>${fq(a.oil)} L</b></div><b>${L}</b> · ${a.status==='above'?fq(a.diff)+' L over':a.status==='acceptable'?fq(-a.diff)+' L spare':'check data'}<div class="sub" style="font-size:9px;margin-top:3px">${a.days} fuel days · ${a.range}</div></div>`}
+let lubeRecs=[];
+function lubeSelect(){const c=lubeCol(lubeRows);if(!S.asset||!c)return lubeRecs=[];const k=eq(S.asset.id);
+ lubeRecs=lubeRows.filter(r=>eq(r[c.equip])===k&&txt(r[c.oil])&&num(r[c.qty])>0).sort((a,b)=>pDate(b[c.date])-pDate(a[c.date]))}
+function renderLube(){
+ const c=lubeCol(lubeRows),body=$('lube-body');
+ if(!c||!S.asset){body.innerHTML='<tr><td colspan="7" class="sub" style="text-align:center;padding:24px">No top-up data loaded. Use ↻.</td></tr>';$('lube-sum').innerHTML='';$('lube-ratio').innerHTML='';return}
+ const al=oilMap.get(eq(S.asset.id));
+ if(al){const cls=al.res==='above'?'no':al.res==='acceptable'?'ok':'wn';$('lube-ratio').innerHTML=`<div class="box ${cls}"><b>Oil / diesel ratio (7 days): ${al.res==='above'?'ABOVE LIMIT':al.res==='acceptable'?'ACCEPTABLE':'REVIEW FUEL DATA'}</b><div style="margin-top:3px">${al.count} top-ups · ${fq(al.liters)} L oil · ${fq(al.fuel)} L diesel · ${Number.isFinite(al.ratio)?al.ratio.toFixed(2):'n/a'} L / 240 L (limit 1.00) · ${al.days}/7 fuel days</div></div>`}else $('lube-ratio').innerHTML='';
+ const by=new Map();
+ for(const r of lubeRecs){const label=txt(r[c.oil])||'Unspecified',k=label.toUpperCase(),e=by.get(k)||by.set(k,{label,total:0,n:0,mn:Infinity,mx:-Infinity}).get(k),q=num(r[c.qty]),d=pDate(r[c.date]);
+  e.n++;if(Number.isFinite(q)){e.total+=q;if(d){const dd=Math.floor(d/DAY)*DAY;e.mn=Math.min(e.mn,dd);e.mx=Math.max(e.mx,dd)}}}
+ const sel=$('lube-oil'),prev=sel.value,keys=[...by.keys()].sort();
+ sel.innerHTML='<option value="ALL">All oil types</option>'+keys.map(k=>`<option value="${esc(k)}">${esc(by.get(k).label)}</option>`).join('');sel.value=keys.includes(prev)?prev:'ALL';
+ const q=txt($('lube-q').value).toLowerCase(),rec=lubeRecs.filter(r=>(sel.value==='ALL'||(txt(r[c.oil])||'Unspecified').toUpperCase()===sel.value)&&(!q||[c.date,c.oil,c.qty,c.remark].filter(Boolean).some(k=>txt(r[k]).toLowerCase().includes(q))));
+ $('lube-n').textContent=`${rec.length} / ${lubeRecs.length}`;
+ const al2=allowance(lubeRows,S.asset.id,c),sd=t=>new Date(t).toLocaleDateString('en-GB',{timeZone:'UTC',day:'2-digit',month:'short',year:'numeric'});
+ $('lube-sum').innerHTML=[...by.values()].sort((a,b)=>b.n-a.n).map(v=>{const span=v.mx>=v.mn?Math.round((v.mx-v.mn)/DAY)+1:0;
+  return`<div class="card kpi"><small>${esc(v.label)}</small><b>${fq(v.total)}</b><span>${v.n} record${v.n>1?'s':''} · ${span?fq(v.total/span)+' L/day':'—'}</span><br><span style="font-size:10px">${span?sd(v.mn)+' – '+sd(v.mx):'no valid dates'}</span>${oilKey(v.label)===OIL?allowHtml(al2):''}</div>`}).join('')||'<div class="sub">No top-up records for this equipment.</div>';
+ body.innerHTML=rec.length?rec.map(r=>{const rm=txt(c.remark&&r[c.remark]),m=num(c.meter&&r[c.meter]),f=lit(r,c,'fuel'),rt=lit(r,c,'rate');
+  return`<tr><td class="mono">${esc(txt(r[c.date]))}</td><td><b>${esc(txt(r[c.oil]))}</b></td><td class="mono" style="color:var(--warn);font-weight:700">${fq(r[c.qty])}</td><td>${rm?`<details><summary style="cursor:pointer;color:var(--a1)">${esc(rm.replace(/\s+/g,' ').slice(0,80))}${rm.length>80?'…':''}</summary><div style="margin-top:5px;white-space:pre-wrap">${esc(rm)}</div></details>`:'<span class="sub">—</span>'}</td><td class="mono">${Number.isFinite(m)?fq(m):'—'}</td><td class="mono">${Number.isFinite(f)?fq(f):'—'}</td><td class="mono">${Number.isFinite(rt)?fq(rt):'—'}</td></tr>`}).join(''):'<tr><td colspan="7" class="sub" style="text-align:center;padding:24px">No matching records.</td></tr>'}
+async function pullLube(force){
+ chip('lube','busy','Lube: syncing');$('lube-sub').textContent='Checking published CSV…';
+ const ok=await pull('lube',force,vLube);rebuildOil();
+ $('lube-sub').textContent=`${S.asset?`${S.asset.id} · ${S.asset.model} · ${S.asset.sn} · `:''}${ok?'Live':'Cached'} · ${T.lube?new Date(T.lube).toLocaleString():'—'}`;
+ if(!$('m-lube').hidden){lubeSelect();renderLube()}return ok}
+async function openLube(){if(!S.asset)return;$('lube-q').value='';$('lube-oil').value='ALL';lubeRows=D.lube;showM('m-lube');lubeSelect();renderLube();if(!D.lube.length||Date.now()-T.lube>12e4)await pullLube(false);else $('lube-sub').textContent=`${S.asset.id} · ${S.asset.model} · stored data`}
+function exportLube(){
+ const c=lubeCol(lubeRows);if(!S.asset||!c||!lubeRecs.length)return toast('No top-up rows to export.');
+ const cell=v=>'"'+(/^[=+\-@\t\r]/.test(txt(v))?"'"+txt(v):txt(v)).replace(/"/g,'""')+'"',n=v=>Number.isFinite(v)?v:'';
+ const rows=[['Equip No','date','Oil type','quantity oil','remark','Hour Meter','Fuel Burned (L)','Fuel Rate (L/H)'],...lubeRecs.map(r=>[r[c.equip],r[c.date],r[c.oil],r[c.qty],c.remark?r[c.remark]:'',c.meter?r[c.meter]:'',n(lit(r,c,'fuel')),n(lit(r,c,'rate'))])];
+ download(new Blob(['\uFEFF'+rows.map(r=>r.map(cell).join(',')).join('\r\n')],{type:'text/csv;charset=utf-8'}),`Lube_${S.asset.id}.csv`)}
+
+/* ---------- AMT ---------- */
+const amtCol=rows=>{if(!rows?.length)return null;const k=Object.keys(rows[0]);return{
+ asset:col(k,['Asset ID','Equipment ID'],[/asset.*id/i,/equipment/i,/^unit/i]),serial:col(k,['Serial No','Serial Number','S/N'],[/serial/i,/^sn$/i]),
+ wo:col(k,['WO','Work Order','WO Number'],[/work.*order/i,/^wo/i]),date:col(k,['Plan Start Date','Planned Start Date'],[/plan.*start/i,/start.*date/i,/^date$/i]),
+ dur:col(k,['Duration','Duration Hours'],[/duration/i,/hours/i]),job:col(k,['Job Code','Job Code / Modifier'],[/job.*code/i,/modifier/i]),
+ status:col(k,['WO Status','Status'],[/wo.*status/i,/^status$/i]),age:col(k,['Age (Days)','Age'],[/^age/i]),desc:col(k,['Description','Repair Details'],[/desc/i,/repair/i,/details/i])}};
+const vAmt=rows=>{const c=amtCol(rows);return!!(c&&(c.asset||c.serial))};
+const woStatus=r=>{const s=txt(r).toUpperCase();return['C','COMPLETE','COMPLETED','CLOSED','DONE'].includes(s)?['Complete','ok']:['O','OPEN','OUTSTANDING','IN PROGRESS'].includes(s)?['Outstanding','wn']:['YTS','YET TO START','NOT STARTED'].includes(s)?['Yet to start','']:[s||'Unknown','']};
+let amtRecs=[],amtC=null;
+function amtSelect(){amtC=amtCol(D.amt);if(!amtC||!S.asset)return amtRecs=[];const id=txt(S.asset.id).toUpperCase(),sn=txt(S.asset.sn).toUpperCase();
+ const a=D.amt.filter(r=>amtC.asset&&txt(r[amtC.asset]).toUpperCase()===id);
+ amtRecs=(a.length?a:D.amt.filter(r=>amtC.serial&&sn!=='-'&&txt(r[amtC.serial]).toUpperCase()===sn)).sort((x,y)=>pDate(y[amtC.date])-pDate(x[amtC.date]))}
+function renderAmt(){
+ const q=txt($('amt-q').value).toLowerCase(),c=amtC,rows=q?amtRecs.filter(r=>Object.values(r).some(v=>txt(v).toLowerCase().includes(q))):amtRecs;
+ $('amt-n').textContent=`${rows.length} / ${amtRecs.length}`;
+ $('amt-body').innerHTML=!c?'<tr><td colspan="6" class="wn" style="text-align:center;padding:24px;border:0">No valid AMT data. Try ↻.</td></tr>':rows.length?rows.map(r=>{
+  const g=k=>txt(k&&r[k]),[lab,cls]=woStatus(g(c.status)),age=Number(g(c.age)),ac=age>30?'var(--bad)':age>14?'var(--warn)':'var(--sub)';
+  return`<tr><td>${esc(g(c.date)||'-')}${g(c.dur)?`<small style="display:block;color:var(--warn)">${esc(g(c.dur))} h</small>`:''}</td><td class="mono" style="color:var(--a1);font-weight:700">${esc(g(c.wo)||'-')}</td><td>${esc(g(c.job)||'-')}</td><td style="text-align:center"><span class="badge ${cls}">${esc(lab)}</span></td><td style="text-align:center;color:${ac}">${esc(g(c.age)||'-')}</td><td>${esc(g(c.desc)||'-')}</td></tr>`}).join(''):'<tr><td colspan="6" class="sub" style="text-align:center;padding:24px">No matching records.</td></tr>'}
+async function pullAmt(force){
+ chip('amt','busy','AMT: syncing');const ok=await pull('amt',force,vAmt,18000);
+ chip('amt',ok?'live':D.amt.length?'cached':'error',ok?`AMT: ${D.amt.length}`:D.amt.length?'AMT: cached':'AMT: unavailable',ERR.amt);
+ if(!$('m-amt').hidden){amtSelect();renderAmt()}return ok}
+async function openAmt(){if(!S.asset)return;$('amt-sub').textContent=`${S.asset.id} · ${S.asset.sn} · ${S.asset.model}`;$('amt-q').value='';showM('m-amt');amtSelect();renderAmt();await pullAmt(true)}
+
+/* ---------- rendering ---------- */
+function tile(cd,ref,id,comp){
+ const ph=!cd,c=cd||{status:'Normal',life:ref},done=!ph&&isDone(c.wo),dim=S.st!=='ALL'&&cd&&cd.status!==S.st,crit=done&&c.status==='Critical';
+ return`<div class="tile${dim?' dim':''}${ph?' ph':''}${crit?' done':''}" data-s="${esc(c.status)}" title="${esc(c.action||'No source record')}"><div class="th"><b>${ph?'No record':c.status}</b><span class="pill">${esc(c.life||'-')}</span></div>${done?'<span class="wo">✓ WO Done</span>':''}${comp==='ENGINE'&&id?`<div class="oil-slot" data-asset="${esc(id)}">${oilHtml(id)}</div>`:''}${!ph&&c.el!=='-'?`<div class="els">⚠ ${esc(c.el)}</div>`:''}${!ph&&c.action!=='-'?`<div class="act">${esc(c.action)}</div>`:''}${ph?'':`<div class="tf"><span>${esc(c.date)}</span>${dots(c.trend)}${done||c.wo==='-'?'':`<span>${esc(c.wo)}</span>`}</div>`}</div>`}
+function stats(data){const s={Normal:0,Caution:0,Critical:0,'No Data':0,cu:new Set(),au:new Set()};
+ for(const u of data)for(const c of Object.values(u.comps)){s[c.status]++;if(c.status==='Critical')s.cu.add(u.id);if(c.status==='Caution')s.au.add(u.id)}return s}
+function render(){
+ const md=modelData(),s=stats(md),total=STAT.reduce((a,k)=>a+s[k],0),vis=visible();
+ $('k-units').textContent=md.length.toLocaleString();$('k-units-n').textContent=`${total} sampled components`;
+ $('k-cr').textContent=s.Critical;$('k-cr-n').textContent=`${s.cu.size} affected units`;
+ $('k-ca').textContent=s.Caution;$('k-ca-n').textContent=`${s.au.size} affected units`;$('k-nd').textContent=s['No Data'];
+ $('count').textContent=`${vis.length} of ${md.length} units shown`;$('reset-st').hidden=S.st==='ALL';$('st').value=S.st;
+ // models
+ $('models').innerHTML=`<button class="model${S.model==='ALL'?' on':''}" data-m="ALL"><em>🚜</em><span>All fleet<small>${S.fleet.length} units</small></span></button>`+
+  [...new Set(S.fleet.map(u=>u.model))].sort().map(m=>`<button class="model${S.model===m?' on':''}" data-m="${esc(m)}"><em>${icon(m)}</em><span>${esc(m)}<small>${S.fleet.filter(u=>u.model===m).length} units</small></span></button>`).join('');
+ // chart + legend
+ $('chart-lbl').textContent=S.model;$('pct').textContent=total?(s.Normal/total*100).toFixed(0)+'%':'–';
+ $('legend').innerHTML=STAT.map(k=>`<button data-st="${k}"><span><i style="background:${COL[k]}"></i>${k}</span><b class="mono">${s[k]} · ${total?(s[k]/total*100).toFixed(1):0}%</b></button>`).join('');
+ if(window.Chart){chart?.destroy();chart=new Chart($('chart'),{type:'doughnut',data:{labels:STAT,datasets:[{data:STAT.map(k=>s[k]),backgroundColor:STAT.map(k=>COL[k]),borderWidth:0,hoverOffset:6}]},
+  options:{responsive:true,maintainAspectRatio:false,cutout:'74%',animation:{duration:250},plugins:{legend:{display:false}},onClick:(e,el)=>el.length&&setStatus(STAT[el[0].index])}})}
+ // hotspots
+ const cc=new Map();for(const u of md)for(const[n,c]of Object.entries(u.comps)){const e=cc.get(n)||cc.set(n,{a:0,c:0}).get(n);if(c.status==='Critical')e.c++;if(c.status==='Caution')e.a++}
+ const hot=[...cc].filter(([,v])=>v.a||v.c).sort((a,b)=>b[1].c-a[1].c||b[1].a-a[1].a).slice(0,12);
+ $('hot').innerHTML=hot.length?hot.map(([n,v])=>`<button data-comp="${esc(n)}"><span title="${esc(n)}">${esc(n)}</span><b><span style="color:var(--bad)">${v.c} Cr</span> · <span style="color:var(--warn)">${v.a} Ca</span></b></button>`).join(''):'<div class="sub">No critical or caution components.</div>';
+ renderTable(vis)}
+function renderTable(vis=visible()){
+ const my=++gen,comps=compNames(S.model);
+ $('head').innerHTML=`<tr><th class="ca">Asset</th>${comps.map(c=>`<th data-c="${esc(c)}">${esc(c)}</th>`).join('')}</tr>`;
+ const body=$('body');if(!vis.length){body.innerHTML=`<tr><td colspan="${comps.length+1}" class="sub" style="text-align:center;padding:30px">No matching assets.</td></tr>`;return}
+ const size=Math.max(8,Math.min(35,Math.floor(500/Math.max(1,comps.length))));
+ const batch=i=>{if(my!==gen)return;const end=Math.min(vis.length,i+size);let h='';
+  for(let j=i;j<end;j++){const u=vis[j],ref=refSmu(u);
+   h+=`<tr><td class="ca"><button class="aid" data-asset="${esc(u.id)}">${esc(u.id)} ↗<small class="sub" style="display:block;font-weight:400;font-size:10px">${esc(u.model)}</small></button><div data-fault="${esc(u.id)}">${faultHtml(u.id)}</div></td>${comps.map(c=>`<td class="cc">${tile(u.comps[c],ref,u.id,c)}</td>`).join('')}</tr>`}
+  i===0?body.innerHTML=h:body.insertAdjacentHTML('beforeend',h);if(end<vis.length)requestAnimationFrame(()=>batch(end))};
+ batch(0)}
+function setStatus(v){S.st=v;render()}
+function focusComp(n){S.q='';$('q').value='';render();const th=[...document.querySelectorAll('th[data-c]')].find(t=>t.dataset.c===n);
+ if(th){th.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'});th.classList.add('hl');setTimeout(()=>th.classList.remove('hl'),2400)}}
+
+/* ---------- modals ---------- */
+const showM=id=>{$(id).hidden=false;document.body.style.overflow='hidden'},closeM=id=>{$(id).hidden=true;if(['m-asset','m-amt','m-lube'].every(m=>$(m).hidden))document.body.style.overflow=''};
+function openAsset(id){
+ const u=S.fleet.find(a=>a.id===id);if(!u)return;S.asset=u;const ref=refSmu(u);
+ $('a-id').textContent=u.id;$('a-model').textContent=u.model;$('a-sn').textContent=u.sn;$('a-smu').textContent=ref;
+ $('a-grid').innerHTML=compNames(u.model).map(n=>`<div><strong>${esc(n)}</strong>${tile(u.comps[n],ref,u.id,n)}</div>`).join('');showM('m-asset')}
+
+/* ---------- export ---------- */
+async function xlsx(head,rows,file,sheet,stCol=-1){
+ if(!rows.length)return toast('No records to export.');
+ if(!window.ExcelJS){toast('Loading export library…');await new Promise(r=>{const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js';s.onload=s.onerror=r;document.head.append(s)})}
+ if(!window.ExcelJS)return toast('Export library unavailable. Check your connection.');
+ const safe=v=>/^[=+\-@\t\r]/.test(txt(v))?"'"+txt(v):txt(v),wb=new ExcelJS.Workbook(),ws=wb.addWorksheet(sheet,{views:[{state:'frozen',ySplit:1}]}),fill=a=>({type:'pattern',pattern:'solid',fgColor:{argb:a}});
+ ws.addRow(head);rows.forEach(r=>ws.addRow(r.map(safe)));ws.columns=head.map((h,i)=>({width:i===7||h==='Description'?55:20}));
+ ws.getRow(1).eachCell(c=>{c.fill=fill('FF102849');c.font={bold:true,color:{argb:'FFFFFFFF'}}});ws.autoFilter={from:'A1',to:{row:1,column:head.length}};
+ const cm={Critical:['FFFEE2E2','FF991B1B'],Caution:['FFFEF3C7','FF92400E'],Normal:['FFDCFCE7','FF166534'],'No Data':['FFE2E8F0','FF475569']};
+ if(stCol>=0)rows.forEach((r,i)=>{const m=cm[r[stCol]];if(m){const c=ws.getCell(i+2,stCol+1);c.fill=fill(m[0]);c.font={bold:true,color:{argb:m[1]}}}});
+ download(new Blob([await wb.xlsx.writeBuffer()],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}),file);toast(`Exported ${rows.length} records.`)}
+const FH=['Asset ID','Model','Serial','Component','Health','Comp life','Wear elements','Action','Sample date','Trend','WO','WO done','Raw health'];
+const fleetRows=a=>a.flatMap(u=>Object.entries(u.comps).map(([n,c])=>[u.id,u.model,u.sn,n,c.status,c.life,c.el,c.action,c.date,c.trend,c.wo,isDone(c.wo)?'Done':'',c.raw]));
+const exportAsset=()=>S.asset&&xlsx(FH,fleetRows([S.asset]),`Asset_${S.asset.id}_Condition.xlsx`,'Asset Condition',4);
+function exportAmt(){const c=amtC;if(!c||!amtRecs.length)return toast('No AMT records to export.');
+ xlsx(['Plan start','WO','Job code','Status','Age (d)','Duration (h)','Description'],amtRecs.map(r=>[c.date,c.wo,c.job,c.status,c.age,c.dur,c.desc].map(k=>k?r[k]:'')),`AMT_${S.asset?.id||'Fleet'}.xlsx`,'AMT History')}
+
+/* ---------- sync ---------- */
+async function syncAll(force=true){
+ if(busy)return;busy=true;const t0=performance.now(),btn=$('sync');btn.disabled=true;
+ if(!D.sos.length){const c=cacheGet('sf8_sos');if(Array.isArray(c)&&c.length&&vSos(c)){D.sos=c;buildFleet();render()}}
+ const last=lsGet('sf8_sos_at'),age=last?Date.now()-Date.parse(last):Infinity;
+ if(!force&&D.sos.length&&age>=0&&age<6e4){chip('sos','cached','SOS: recent cache');$('meta').textContent=`Last confirmed sync ${new Date(last).toLocaleString()} · press Sync to check now`;btn.disabled=false;busy=false;return}
+ chip('sos','busy','SOS: syncing');
+ const ok=await pull('sos',force,vSos);buildFleet();render();setOilChip();
+ chip('sos',ok?'live':D.sos.length?'cached':'error',ok?`SOS: ${((performance.now()-t0)/1000).toFixed(1)}s`:D.sos.length?'SOS: cached':'SOS: failed',ERR.sos);
+ $('meta').textContent=ok?`Last sync ${new Date(T.sos).toLocaleString()} · ${D.sos.length.toLocaleString()} source rows · Google Sheets`:D.sos.length?`Google Sheets unavailable · showing stored data`:'Could not reach Google Sheets; no cached data.';
+ if(!ok)toast(D.sos.length?'Google Sheets is slow or unavailable. Showing saved data.':ERR.sos||'Data unavailable');
+ btn.disabled=false;busy=false;
+ // secondary feeds never block the main view
+ Promise.all([pull('lube',force,vLube).then(rebuildOil),pull('fault',force,vFault).then(ok=>{buildFaults();updFaults();chip('fault',ok?'live':D.fault.length?'cached':'error',ok?`Faults: ${faults.size} units`:D.fault.length?'Faults: cached':'Faults: n/a',ERR.fault)}),force?pullAmt(true):0])}
+
+/* ---------- init ---------- */
+function init(){
+ const th=lsGet('smartfleet_theme')||'slate';document.documentElement.dataset.theme=th;$('theme').value=th;
+ $('theme').onchange=e=>{document.documentElement.dataset.theme=e.target.value;lsSet('smartfleet_theme',e.target.value);render()};
+ let tm;$('q').oninput=e=>{S.q=e.target.value.trim();clearTimeout(tm);tm=setTimeout(render,150)};
+ $('st').onchange=e=>setStatus(e.target.value);$('sort').onchange=e=>{S.sort=e.target.value;render()};
+ $('reset-st').onclick=()=>setStatus('ALL');$('sync').onclick=()=>syncAll(true);$('exp').onclick=()=>xlsx(FH,fleetRows(visible()),`SmartFleet_${new Date().toISOString().slice(0,10)}.xlsx`,'Fleet Condition',4);
+ $('reset').onclick=()=>{Object.assign(S,{model:'ALL',st:'ALL',q:'',sort:'asset'});$('q').value='';$('sort').value='asset';render()};
+ document.addEventListener('click',e=>{const t=e.target.closest('[data-m],[data-st],[data-comp],[data-asset].aid');if(!t)return;
+  if(t.dataset.m!==undefined){S.model=t.dataset.m;render()}else if(t.dataset.st)setStatus(t.dataset.st);else if(t.dataset.comp)focusComp(t.dataset.comp);else openAsset(t.dataset.asset)});
+ document.addEventListener('keydown',e=>{if(e.key==='Escape')closeM(['m-lube','m-amt','m-asset'].find(m=>!$(m).hidden)||'m-asset')});
+ document.querySelectorAll('.modal').forEach(m=>m.addEventListener('click',e=>e.target===m&&closeM(m.id)));
+ // PWA
+ let ev;const b=$('pwa');addEventListener('beforeinstallprompt',e=>{e.preventDefault();ev=e;b.hidden=false});
+ b.onclick=async()=>{if(ev){ev.prompt();await ev.userChoice;ev=null;b.hidden=true}};addEventListener('appinstalled',()=>{b.hidden=true;toast('SmartFleet installed.')});
+ if('serviceWorker' in navigator&&isSecureContext)navigator.serviceWorker.register('./service-worker.js').catch(()=>{});
+ // warm caches, then sync
+ for(const[n,v]of[['lube',vLube],['fault',vFault],['amt',vAmt]]){const c=cacheGet('sf8_'+n);if(Array.isArray(c)&&c.length&&v(c)){D[n]=c;T[n]=Date.parse(lsGet('sf8_'+n+'_at')||'')||0}}
+ buildFaults();rebuildOil();if(D.amt.length)chip('amt','cached',`AMT: cached (${D.amt.length})`);if(faults.size)chip('fault','cached',`Faults: cached`);
+ syncAll(false);
+ setInterval(()=>{if(lubeRows.length)rebuildOil()},6e4)}
+window.S=S;
+document.readyState==='loading'?document.addEventListener('DOMContentLoaded',init):init();
+</script>
+</body>
+</html>
