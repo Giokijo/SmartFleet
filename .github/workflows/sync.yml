@@ -1,0 +1,25 @@
+name: Sync data to Supabase
+on:
+  schedule:
+    - cron: "*/30 * * * *"   # every 30 minutes (GitHub may delay a few minutes)
+  workflow_dispatch:          # manual "Run workflow" button
+permissions:
+  contents: read
+concurrency:
+  group: supabase-sync
+  cancel-in-progress: false
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20 }
+      - run: node scripts/sync.js
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          SRC_SOS: ${{ secrets.SRC_SOS }}
+          SRC_AMT: ${{ secrets.SRC_AMT }}
+          SRC_LUBE: ${{ secrets.SRC_LUBE }}
+          SRC_FAULT: ${{ secrets.SRC_FAULT }}
