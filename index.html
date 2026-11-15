@@ -112,13 +112,30 @@ body.locked #login{display:flex}body.locked>*:not(#login):not(script){display:no
 .lg label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--sub)}.lg .fld{width:100%}
 .pw{position:relative}.pw .fld{padding-right:42px}.pw button{position:absolute;right:4px;top:3px;height:32px;width:36px;border-radius:9px;color:var(--sub)}.pw button:hover{background:var(--hov)}
 #lg-err{min-height:16px;font-size:11.5px;color:var(--bad);font-weight:600}.lg .btn.pri{padding:11px;font-size:13px;margin-top:2px}
-@media(max-width:860px){.kpis{grid-template-columns:repeat(2,1fr)}.row2{grid-template-columns:1fr}.ca{width:150px;min-width:150px}.cc{width:160px;min-width:160px}}
+/* report */
+.sheet{background:#fff;color:#111827;border-radius:12px;padding:26px 28px;font-size:12px;line-height:1.45;box-shadow:0 4px 18px rgba(0,0,0,.18)}
+.sheet h3{font-size:19px;letter-spacing:-.02em;margin-bottom:2px}.sheet h4{font-size:12px;text-transform:uppercase;letter-spacing:.07em;color:#0369a1;margin:20px 0 8px;padding-bottom:4px;border-bottom:2px solid #e2e8f0}
+.sheet .meta{color:#64748b;font-size:11px}.sheet table{width:100%;border-collapse:collapse;font-size:11px}
+.sheet th{position:static;background:#f1f5f9;color:#475569;text-align:left;padding:6px 8px;font-size:9.5px;border-bottom:1px solid #cbd5e1}
+.sheet td{padding:5px 8px;border-bottom:1px solid #e5e7eb;vertical-align:top}.sheet td.n,.sheet th.n{text-align:right}
+.rk{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:14px 0 4px}.rk div{border:1px solid #e2e8f0;border-radius:10px;padding:10px 12px;border-left:4px solid var(--c,#0ea5e9)}
+.rk b{display:block;font-size:22px;letter-spacing:-.02em;color:var(--c,#111827)}.rk small{font-size:9.5px;text-transform:uppercase;letter-spacing:.06em;color:#64748b;font-weight:700}
+.tg{display:inline-block;padding:1px 7px;border-radius:99px;font-weight:700;font-size:10px;color:#fff;white-space:nowrap}
+.sheet .note{margin-top:10px;padding:8px 10px;border-radius:8px;background:#f8fafc;border:1px solid #e2e8f0;color:#475569}.sheet .empty{color:#64748b;font-style:italic;padding:6px 0}
+.ropt{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-bottom:12px}.ropt label{display:inline-flex;gap:5px;align-items:center;font-size:12px;cursor:pointer}
+@media print{@page{size:A4;margin:12mm}
+ body>*:not(#m-report){display:none!important}body{background:#fff!important}
+ #m-report{position:static!important;display:block!important;background:none!important;padding:0!important;backdrop-filter:none!important;overflow:visible!important}
+ #m-report .dlg{width:100%!important;max-height:none!important;overflow:visible!important;border:0!important;box-shadow:none!important;padding:0!important;background:#fff!important}
+ .noprint{display:none!important}.sheet{box-shadow:none!important;padding:0!important}.sheet h4,.rk div,.sheet tr{break-inside:avoid}.sheet thead{display:table-header-group}
+ *{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
+@media(max-width:860px){.rk{grid-template-columns:repeat(2,1fr)}.kpis{grid-template-columns:repeat(2,1fr)}.row2{grid-template-columns:1fr}.ca{width:150px;min-width:150px}.cc{width:160px;min-width:160px}}
 @media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 </head>
 <body>
 <header class="card">
-  <div class="brand"><div class="logo"><svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg"><path d="M224 32v64h-32l-23.3-23.3-45.3 45.3L146.7 142H112V96H64v46c-21.7 13.7-36.9 36.3-41.9 62H0v64h22.1c5 25.7 20.2 48.3 41.9 62V376h48v-46h34.7l-23.3 23.3 45.3 45.3L192 374.7V416h32v64h64V32h-64zm-32 256c-35.3 0-64-28.7-64-64s28.7-64 64-64 64 28.7 64 64-28.7 64-64 64zm256-160c0-17.7-14.3-32-32-32s-32 14.3-32 32 14.3 32 32 32 32-14.3 32-32zm-64 128c0-17.7-14.3-32-32-32s-32 14.3-32 32 14.3 32 32 32 32-14.3 32-32zm64 128c0-17.7-14.3-32-32-32s-32 14.3-32 32 14.3 32 32 32 32-14.3 32-32z"/></svg></div><div><h1>SmartFleet Condition Monitoring</h1><div class="sub" style="font-size:11px">Rev 8.2 · SOS · AMT · Faults · Lube</div></div></div>
+  <div class="brand"><div class="logo"><svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg"><path d="M224 32v64h-32l-23.3-23.3-45.3 45.3L146.7 142H112V96H64v46c-21.7 13.7-36.9 36.3-41.9 62H0v64h22.1c5 25.7 20.2 48.3 41.9 62V376h48v-46h34.7l-23.3 23.3 45.3 45.3L192 374.7V416h32v64h64V32h-64zm-32 256c-35.3 0-64-28.7-64-64s28.7-64 64-64 64 28.7 64 64-28.7 64-64 64zm256-160c0-17.7-14.3-32-32-32s-32 14.3-32 32 14.3 32 32 32 32-14.3 32-32zm-64 128c0-17.7-14.3-32-32-32s-32 14.3-32 32 14.3 32 32 32 32-14.3 32-32zm64 128c0-17.7-14.3-32-32-32s-32 14.3-32 32 14.3 32 32 32 32-14.3 32-32z"/></svg></div><div><h1>SmartFleet Condition Monitoring</h1><div class="sub" style="font-size:11px">Rev 8.3 · SOS · AMT · Faults · Lube</div></div></div>
   <div class="tools">
     <div class="chips"><span class="chip" id="chip-sos">SOS</span><span class="chip" id="chip-amt">AMT</span><span class="chip" id="chip-lube">Lube</span><span class="chip" id="chip-fault">Faults</span></div>
     <select id="theme" class="fld" style="min-height:34px;padding:5px 10px" aria-label="Theme"><option value="slate">🌙 Slate</option><option value="navy">🌊 Navy</option><option value="light">☀️ Light</option></select>
@@ -150,12 +167,21 @@ body.locked #login{display:flex}body.locked>*:not(#login):not(script){display:no
   <select id="st" class="fld"><option value="ALL">All statuses</option><option>Critical</option><option>Caution</option><option>Normal</option><option>No Data</option></select>
   <select id="sort" class="fld"><option value="asset">Asset A–Z</option><option value="risk">Highest risk</option><option value="latest">Latest sample</option></select>
   <button id="reset" class="btn">Reset</button>
+  <button id="rep" class="btn pri">📋 Report</button>
   <button id="exp" class="btn grn">↓ Export Excel</button>
 </section>
 
 <section class="card" style="overflow:hidden">
   <div class="wrap"><table><thead id="head"></thead><tbody id="body"><tr><td class="sub" style="padding:30px;text-align:center">Loading…</td></tr></tbody></table></div>
 </section>
+
+<!-- Report -->
+<div class="modal" id="m-report" hidden><div class="dlg" style="--w:980px">
+  <div class="dh noprint"><h2>📋 Summary report</h2><div class="tools"><button class="btn pri" onclick="window.print()">🖨 Print / PDF</button><button class="btn grn" onclick="exportReport()">↓ Excel</button><button class="btn" onclick="copyReport()">⧉ Copy text</button><button class="btn" onclick="closeM('m-report')">✕</button></div></div>
+  <div class="ropt noprint"><label>Scope <select id="r-model" class="fld" style="min-height:32px;padding:4px 10px"></select></label>
+    <label><input type="checkbox" id="r-cau" checked> Include Caution</label><label><input type="checkbox" id="r-oil" checked> Oil alerts</label><label><input type="checkbox" id="r-fau" checked> Faults</label></div>
+  <div class="sheet" id="r-sheet"></div>
+</div></div>
 
 <!-- Asset -->
 <div class="modal" id="m-asset" hidden><div class="dlg" style="--w:1100px">
@@ -194,7 +220,7 @@ body.locked #login{display:flex}body.locked>*:not(#login):not(script){display:no
 <script>
 "use strict";
 /* ===== SUPABASE CONFIG: paste your Project URL and anon/publishable key (safe to expose; data is protected by RLS) ===== */
-const SUPABASE_URL="https://tioybqwptnxmqpnilsyx.supabase.co",SUPABASE_KEY="sb_publishable_N66Uybfl1IqAfAUPh80laQ_c0t6U-LK";
+const SUPABASE_URL="PASTE_PROJECT_URL_HERE",SUPABASE_KEY="PASTE_ANON_OR_PUBLISHABLE_KEY_HERE";
 const sb=window.supabase&&!SUPABASE_URL.startsWith('PASTE')?supabase.createClient(SUPABASE_URL,SUPABASE_KEY):null,SYNCED={};
 const OIL='SHELLRIMULAR4X15W40',TZ='Africa/Abidjan',GAL=3.785411784,DAY=864e5;
 const ORDER=["ENGINE","TORQUE CONVERTER","TRANSMISSION","DIFFERENTIAL FRONT","FINAL DRIVE FRONT LEFT","FINAL DRIVE FRONT RIGHT","WHEEL BEARINGS FRONT LEFT","WHEEL BEARINGS FRONT RIGHT","DIFFERENTIAL REAR","FINAL DRIVE REAR LEFT","FINAL DRIVE REAR RIGHT","TANDEM LEFT","TANDEM RIGHT","PUMP DRIVE","SWING DRIVE LEFT","SWING DRIVE RIGHT","STEERING SYSTEM","HYDRAULIC SYSTEM","RADIATOR","VIMS","PRODUCT LINK"];
@@ -471,7 +497,7 @@ function focusComp(n){S.q='';$('q').value='';render();const th=[...document.quer
  if(th){th.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'});th.classList.add('hl');setTimeout(()=>th.classList.remove('hl'),2400)}}
 
 /* ---------- modals ---------- */
-const showM=id=>{$(id).hidden=false;document.body.style.overflow='hidden'},closeM=id=>{$(id).hidden=true;if(['m-asset','m-amt','m-lube'].every(m=>$(m).hidden))document.body.style.overflow=''};
+const showM=id=>{$(id).hidden=false;document.body.style.overflow='hidden'},closeM=id=>{$(id).hidden=true;if(['m-asset','m-amt','m-lube','m-report'].every(m=>$(m).hidden))document.body.style.overflow=''};
 function openAsset(id){
  const u=S.fleet.find(a=>a.id===id);if(!u)return;S.asset=u;const ref=refSmu(u);
  $('a-id').textContent=u.id;$('a-model').textContent=u.model;$('a-sn').textContent=u.sn;$('a-smu').textContent=ref;
@@ -488,6 +514,49 @@ async function xlsx(head,rows,file,sheet,stCol=-1){
  const cm={Critical:['FFFEE2E2','FF991B1B'],Caution:['FFFEF3C7','FF92400E'],Normal:['FFDCFCE7','FF166534'],'No Data':['FFE2E8F0','FF475569']};
  if(stCol>=0)rows.forEach((r,i)=>{const m=cm[r[stCol]];if(m){const c=ws.getCell(i+2,stCol+1);c.fill=fill(m[0]);c.font={bold:true,color:{argb:m[1]}}}});
  download(new Blob([await wb.xlsx.writeBuffer()],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}),file);toast(`Exported ${rows.length} records.`)}
+/* ---------- summary report ---------- */
+const STC={Critical:'#e11d48',Caution:'#d97706',Normal:'#059669','No Data':'#64748b'};
+const tg=st=>`<span class="tg" style="background:${STC[st]||'#64748b'}">${esc(st)}</span>`;
+function reportData(){
+ const model=$('r-model').value||'ALL',withCau=$('r-cau').checked,units=S.fleet.filter(u=>model==='ALL'||u.model===model),cnt=()=>({Normal:0,Caution:0,Critical:0,'No Data':0,n:0});
+ const tot=cnt(),by=new Map(),items=[],cu=new Set();
+ for(const u of units){const m=by.get(u.model)||by.set(u.model,{...cnt(),units:0,cu:new Set()}).get(u.model);m.units++;
+  for(const[n,c]of Object.entries(u.comps)){tot[c.status]++;tot.n++;m[c.status]++;m.n++;
+   if(c.status==='Critical'){m.cu.add(u.id);cu.add(u.id)}
+   if(c.status==='Critical'||(withCau&&c.status==='Caution'))items.push({id:u.id,model:u.model,sn:u.sn,comp:n,status:c.status,life:c.life,el:c.el,action:c.action,date:c.date,wo:c.wo,done:isDone(c.wo)})}}
+ items.sort((a,b)=>score(b.status)-score(a.status)||a.done-b.done||a.id.localeCompare(b.id,undefined,{numeric:true}));
+ const ids=new Set(units.map(u=>u.id)),key=new Set(units.map(u=>eq(u.id)));
+ const oil=[...oilMap].filter(([k])=>key.has(k)).map(([k,a])=>({id:units.find(u=>eq(u.id)===k).id,...a})).sort((a,b)=>(b.res==='above')-(a.res==='above')||b.count-a.count);
+ const fau=[];for(const u of units){const a=faults.get(idk(u.id));if(a)fau.push({id:u.id,model:u.model,n:a.length,h:a.filter(f=>f.h>0).length,top:(a.find(f=>f.h>0)||a[0]).name})}
+ fau.sort((x,y)=>y.h-x.h||y.n-x.n);
+ return{model,units,tot,by,items,oil,fau,cu,withCau}}
+function renderReport(){
+ const R=reportData(),now=new Date(),pct=R.tot.n?(R.tot.Normal/R.tot.n*100).toFixed(1):'0.0',st=SYNCED.sos?new Date(SYNCED.sos).toLocaleString():'—';
+ const kp=(l,v,c,sub='')=>`<div style="--c:${c}"><small>${l}</small><b>${v}</b><span style="color:#64748b;font-size:10px">${sub}</span></div>`;
+ let h=`<h3>SmartFleet Condition Monitoring Report</h3><div class="meta">Scope: <b>${R.model==='ALL'?'All fleet':esc(R.model)}</b> · Generated ${now.toLocaleString()} · Data updated ${esc(st)}</div>
+ <div class="rk">${kp('Units',R.units.length,'#0ea5e9',R.tot.n+' components')}${kp('Normal',pct+'%','#059669',R.tot.Normal+' components')}${kp('Critical',R.tot.Critical,'#e11d48',R.cu.size+' units')}${kp('Caution',R.tot.Caution,'#d97706',R.tot['No Data']+' no data')}</div>
+ <h4>Status by model</h4><table><thead><tr><th>Model</th><th class="n">Units</th><th class="n">Normal</th><th class="n">Caution</th><th class="n">Critical</th><th class="n">No data</th><th class="n">Units w/ critical</th></tr></thead><tbody>${
+  [...R.by].sort((a,b)=>a[0].localeCompare(b[0])).map(([m,v])=>`<tr><td><b>${esc(m)}</b></td><td class="n">${v.units}</td><td class="n">${v.Normal}</td><td class="n">${v.Caution}</td><td class="n" style="color:#e11d48;font-weight:700">${v.Critical}</td><td class="n">${v['No Data']}</td><td class="n">${v.cu.size}</td></tr>`).join('')||'<tr><td colspan="7" class="empty">No data.</td></tr>'}</tbody></table>
+ <h4>Priority components (${R.items.length})</h4>`;
+ h+=R.items.length?`<table><thead><tr><th>Asset</th><th>Component</th><th>Status</th><th>Life</th><th>Wear</th><th>Recommended action</th><th>Sampled</th><th>WO</th></tr></thead><tbody>${R.items.map(i=>`<tr><td><b>${esc(i.id)}</b><br><span style="color:#64748b">${esc(i.model)}</span></td><td>${esc(i.comp)}</td><td>${tg(i.status)}</td><td>${esc(i.life)}</td><td>${esc(i.el)}</td><td>${esc(i.action)}</td><td>${esc(i.date)}</td><td>${i.done?'✓ Done':i.wo!=='-'?esc(i.wo):'—'}</td></tr>`).join('')}</tbody></table>`:'<div class="empty">No critical components in this scope.</div>';
+ if($('r-oil').checked){h+=`<h4>Engine oil top-up alerts (last 7 days)</h4>`;
+  h+=R.oil.length?`<table><thead><tr><th>Asset</th><th class="n">Top-ups</th><th class="n">Oil (L)</th><th class="n">Diesel (L)</th><th class="n">L / 240 L</th><th>Result</th></tr></thead><tbody>${R.oil.map(a=>`<tr><td><b>${esc(a.id)}</b></td><td class="n">${a.count}</td><td class="n">${fq(a.liters)}</td><td class="n">${fq(a.fuel)}</td><td class="n">${Number.isFinite(a.ratio)?a.ratio.toFixed(2):'n/a'}</td><td>${a.res==='above'?'<b style="color:#e11d48">ABOVE LIMIT</b>':a.res==='acceptable'?'Acceptable':'Review fuel data'}</td></tr>`).join('')}</tbody></table>`:'<div class="empty">No oil alerts.</div>'}
+ if($('r-fau').checked){h+=`<h4>Fault codes</h4>`;
+  h+=R.fau.length?`<table><thead><tr><th>Asset</th><th>Model</th><th class="n">Faults</th><th class="n">High</th><th>Most severe / latest</th></tr></thead><tbody>${R.fau.slice(0,15).map(f=>`<tr><td><b>${esc(f.id)}</b></td><td>${esc(f.model)}</td><td class="n">${f.n}</td><td class="n" style="${f.h?'color:#e11d48;font-weight:700':''}">${f.h}</td><td>${esc(f.top)}</td></tr>`).join('')}</tbody></table>${R.fau.length>15?`<div class="note">Showing top 15 of ${R.fau.length} units.</div>`:''}`:'<div class="empty">No fault records.</div>'}
+ h+=`<div class="note">Status comes from the latest oil-sample result per component. “No Data” is not counted as Normal. Oil limit: 1 L engine oil per 240 L diesel.</div>`;
+ $('r-sheet').innerHTML=h}
+function openReport(){
+ const sel=$('r-model'),cur=S.model;sel.innerHTML='<option value="ALL">All fleet</option>'+[...new Set(S.fleet.map(u=>u.model))].sort().map(m=>`<option>${esc(m)}</option>`).join('');
+ sel.value=[...sel.options].some(o=>o.value===cur)?cur:'ALL';showM('m-report');renderReport()}
+const reportRows=()=>reportData().items.map(i=>[i.id,i.model,i.sn,i.comp,i.status,i.life,i.el,i.action,i.date,i.wo,i.done?'Done':'']);
+const exportReport=()=>xlsx(['Asset ID','Model','Serial','Component','Status','Comp life','Wear elements','Action','Sample date','WO','WO done'],reportRows(),`SmartFleet_Report_${new Date().toISOString().slice(0,10)}.xlsx`,'Priority Components',4);
+async function copyReport(){
+ const R=reportData(),pct=R.tot.n?(R.tot.Normal/R.tot.n*100).toFixed(1):'0.0';
+ const t=[`*SmartFleet Report* · ${R.model==='ALL'?'All fleet':R.model} · ${new Date().toLocaleDateString()}`,`Units: ${R.units.length} | Normal ${pct}% | Critical ${R.tot.Critical} (${R.cu.size} units) | Caution ${R.tot.Caution} | No data ${R.tot['No Data']}`,'',
+  ...[...R.by].sort((a,b)=>a[0].localeCompare(b[0])).map(([m,v])=>`• ${m}: ${v.units} units, ${v.Critical} critical, ${v.Caution} caution`),'',
+  `Top priorities:`,...R.items.filter(i=>i.status==='Critical'&&!i.done).slice(0,10).map(i=>`- ${i.id} ${i.comp}: ${i.action!=='-'?i.action:'check'}${i.el!=='-'?' ['+i.el+']':''}`),
+  ...(R.oil.length?['',`Oil alerts: ${R.oil.length} unit(s)${R.oil.filter(a=>a.res==='above').length?`, ${R.oil.filter(a=>a.res==='above').length} above limit`:''}`]:[])].join('\n');
+ try{await navigator.clipboard.writeText(t);toast('Report text copied.')}catch{const a=Object.assign(document.createElement('textarea'),{value:t});document.body.append(a);a.select();try{document.execCommand('copy');toast('Report text copied.')}catch{toast('Copy failed.')}a.remove()}}
 const FH=['Asset ID','Model','Serial','Component','Health','Comp life','Wear elements','Action','Sample date','Trend','WO','WO done','Raw health'];
 const fleetRows=a=>a.flatMap(u=>Object.entries(u.comps).map(([n,c])=>[u.id,u.model,u.sn,n,c.status,c.life,c.el,c.action,c.date,c.trend,c.wo,isDone(c.wo)?'Done':'',c.raw]));
 const exportAsset=()=>S.asset&&xlsx(FH,fleetRows([S.asset]),`Asset_${S.asset.id}_Condition.xlsx`,'Asset Condition',4);
@@ -515,11 +584,11 @@ function init(){
  $('theme').onchange=e=>{document.documentElement.dataset.theme=e.target.value;lsSet('smartfleet_theme',e.target.value);render()};
  let tm;$('q').oninput=e=>{S.q=e.target.value.trim();clearTimeout(tm);tm=setTimeout(render,150)};
  $('st').onchange=e=>setStatus(e.target.value);$('sort').onchange=e=>{S.sort=e.target.value;render()};
- $('reset-st').onclick=()=>setStatus('ALL');$('sync').onclick=()=>syncAll(true);$('exp').onclick=()=>xlsx(FH,fleetRows(visible()),`SmartFleet_${new Date().toISOString().slice(0,10)}.xlsx`,'Fleet Condition',4);
+ $('reset-st').onclick=()=>setStatus('ALL');$('rep').onclick=openReport;['r-model','r-cau','r-oil','r-fau'].forEach(i=>$(i).onchange=renderReport);$('sync').onclick=()=>syncAll(true);$('exp').onclick=()=>xlsx(FH,fleetRows(visible()),`SmartFleet_${new Date().toISOString().slice(0,10)}.xlsx`,'Fleet Condition',4);
  $('reset').onclick=()=>{Object.assign(S,{model:'ALL',st:'ALL',q:'',sort:'asset'});$('q').value='';$('sort').value='asset';render()};
  document.addEventListener('click',e=>{const t=e.target.closest('[data-m],[data-st],[data-comp],[data-asset].aid');if(!t)return;
   if(t.dataset.m!==undefined){S.model=t.dataset.m;render()}else if(t.dataset.st)setStatus(t.dataset.st);else if(t.dataset.comp)focusComp(t.dataset.comp);else openAsset(t.dataset.asset)});
- document.addEventListener('keydown',e=>{if(e.key==='Escape')closeM(['m-lube','m-amt','m-asset'].find(m=>!$(m).hidden)||'m-asset')});
+ document.addEventListener('keydown',e=>{if(e.key==='Escape')closeM(['m-report','m-lube','m-amt','m-asset'].find(m=>!$(m).hidden)||'m-asset')});
  document.querySelectorAll('.modal').forEach(m=>m.addEventListener('click',e=>e.target===m&&closeM(m.id)));
  // PWA
  let ev;const b=$('pwa');addEventListener('beforeinstallprompt',e=>{e.preventDefault();ev=e;b.hidden=false});
