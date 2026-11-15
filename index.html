@@ -33,7 +33,7 @@ button,select,input{font:inherit;color:inherit}button{cursor:pointer;background:
 .fld{background:var(--solid);border:1px solid var(--line);border-radius:11px;padding:9px 12px;min-height:38px}
 /* header */
 header{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;padding:14px 18px;margin-bottom:16px}
-.brand{display:flex;gap:12px;align-items:center}
+.brand{display:flex;gap:12px;align-items:center}.who{margin-top:5px;display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:700;padding:3px 10px 3px 4px;border-radius:99px;background:rgba(56,189,248,.14);border:1px solid var(--line)}.who i{font-style:normal;width:18px;height:18px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(135deg,var(--a1),var(--a2));color:#fff;font-size:10px}
 .logo{width:42px;height:42px;padding:8px;border-radius:13px;display:grid;place-items:center;background:rgba(37,99,235,.2);border:1px solid rgba(59,130,246,.3);color:#60a5fa;box-shadow:inset 0 2px 6px rgba(0,0,0,.2)}.logo svg{width:100%;height:100%;fill:currentColor}
 h1{font-size:clamp(16px,2.2vw,21px);letter-spacing:-.02em}
 .tools{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
@@ -135,7 +135,7 @@ body.locked #login{display:flex}body.locked>*:not(#login):not(script){display:no
 </head>
 <body>
 <header class="card">
-  <div class="brand"><div class="logo"><svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg"><path d="M224 32v64h-32l-23.3-23.3-45.3 45.3L146.7 142H112V96H64v46c-21.7 13.7-36.9 36.3-41.9 62H0v64h22.1c5 25.7 20.2 48.3 41.9 62V376h48v-46h34.7l-23.3 23.3 45.3 45.3L192 374.7V416h32v64h64V32h-64zm-32 256c-35.3 0-64-28.7-64-64s28.7-64 64-64 64 28.7 64 64-28.7 64-64 64zm256-160c0-17.7-14.3-32-32-32s-32 14.3-32 32 14.3 32 32 32 32-14.3 32-32zm-64 128c0-17.7-14.3-32-32-32s-32 14.3-32 32 14.3 32 32 32 32-14.3 32-32zm64 128c0-17.7-14.3-32-32-32s-32 14.3-32 32 14.3 32 32 32 32-14.3 32-32z"/></svg></div><div><h1>SmartFleet Condition Monitoring</h1><div class="sub" style="font-size:11px">Rev 8.3 · SOS · AMT · Faults · Lube</div></div></div>
+  <div class="brand"><div class="logo"><svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg"><path d="M224 32v64h-32l-23.3-23.3-45.3 45.3L146.7 142H112V96H64v46c-21.7 13.7-36.9 36.3-41.9 62H0v64h22.1c5 25.7 20.2 48.3 41.9 62V376h48v-46h34.7l-23.3 23.3 45.3 45.3L192 374.7V416h32v64h64V32h-64zm-32 256c-35.3 0-64-28.7-64-64s28.7-64 64-64 64 28.7 64 64-28.7 64-64 64zm256-160c0-17.7-14.3-32-32-32s-32 14.3-32 32 14.3 32 32 32 32-14.3 32-32zm-64 128c0-17.7-14.3-32-32-32s-32 14.3-32 32 14.3 32 32 32 32-14.3 32-32zm64 128c0-17.7-14.3-32-32-32s-32 14.3-32 32 14.3 32 32 32 32-14.3 32-32z"/></svg></div><div><h1>SmartFleet Condition Monitoring</h1><div class="sub" style="font-size:11px">Rev 8.4 · SOS · AMT · Faults · Lube</div><div id="who" class="who" hidden></div></div></div>
   <div class="tools">
     <div class="chips"><span class="chip" id="chip-sos">SOS</span><span class="chip" id="chip-amt">AMT</span><span class="chip" id="chip-lube">Lube</span><span class="chip" id="chip-fault">Faults</span></div>
     <select id="theme" class="fld" style="min-height:34px;padding:5px 10px" aria-label="Theme"><option value="slate">🌙 Slate</option><option value="navy">🌊 Navy</option><option value="light">☀️ Light</option></select>
@@ -603,7 +603,8 @@ function init(){
 async function sessionOk(){if(!sb)return false;const{data}=await sb.auth.getSession();return!!data.session}
 async function logout(){try{await sb?.auth.signOut()}catch{}Object.keys(localStorage).filter(k=>k.startsWith('sf8_')).forEach(k=>localStorage.removeItem(k));location.reload()}
 let booted=false;
-function boot(){document.body.classList.remove('locked');if(booted)return;booted=true;init();setInterval(async()=>{if(!await sessionOk())location.reload()},6e4)}
+async function showWho(){try{const u=(await sb.auth.getSession()).data.session?.user;if(!u)return;const m=u.user_metadata||{},n=txt(m.display_name||m.full_name||m.name||(u.email||'').split('@')[0]),w=$('who');w.innerHTML=`<i>${esc(n.charAt(0).toUpperCase())}</i>${esc(n)}`;w.title=u.email||'';w.hidden=!n}catch{}}
+function boot(){document.body.classList.remove('locked');showWho();if(booted)return;booted=true;init();setInterval(async()=>{if(!await sessionOk())location.reload()},6e4)}
 function initLogin(){
  const err=$('lg-err'),btn=$('lg-btn'),pass=$('lg-pass');
  $('lg-eye').onclick=()=>{pass.type=pass.type==='password'?'text':'password'};
